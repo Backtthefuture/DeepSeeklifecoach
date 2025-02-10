@@ -794,87 +794,9 @@ const App = {
     },
 };
 
-// 初始化赞赏功能
-const initSupportFeature = () => {
-    console.log('初始化赞赏功能...');
-
-    // 获取元素
-    const modal = document.getElementById('supportModal');
-    const btn = document.getElementById('supportBtn');
-    const closeBtn = document.querySelector('.close-btn');
-    const qrcodeContainer = document.querySelector('.qrcode-container');
-    const qrcodeImg = document.getElementById('qrcodeImg');
-
-    // 验证元素
-    if (!modal || !btn || !closeBtn || !qrcodeContainer || !qrcodeImg) {
-        console.error('找不到必要的 DOM 元素:', {
-            modal: !!modal,
-            btn: !!btn,
-            closeBtn: !!closeBtn,
-            qrcodeContainer: !!qrcodeContainer,
-            qrcodeImg: !!qrcodeImg
-        });
-        return;
-    }
-
-    console.log('DOM 元素已找到，设置事件监听器...');
-    let isEnlarged = false;
-
-    // 打开弹窗
-    btn.onclick = () => {
-        console.log('点击赞赏按钮');
-        modal.style.display = 'flex';
-        // 确保图片加载
-        qrcodeImg.onerror = () => {
-            console.error('二维码图片加载失败');
-            modal.style.display = 'none';
-            alert('二维码加载失败，请稍后重试');
-        };
-    };
-
-    // 关闭弹窗
-    closeBtn.onclick = () => {
-        console.log('点击关闭按钮');
-        modal.style.display = 'none';
-        if (isEnlarged) {
-            qrcodeContainer.classList.remove('enlarged');
-            isEnlarged = false;
-        }
-    };
-
-    // 点击空白处关闭
-    modal.onclick = (e) => {
-        if (e.target === modal) {
-            console.log('点击弹窗外部');
-            modal.style.display = 'none';
-            if (isEnlarged) {
-                qrcodeContainer.classList.remove('enlarged');
-                isEnlarged = false;
-            }
-        }
-    };
-
-    // 点击二维码切换大小
-    qrcodeContainer.onclick = (e) => {
-        if (e.target.tagName === 'IMG') {
-            console.log('点击二维码图片');
-            isEnlarged = !isEnlarged;
-            qrcodeContainer.classList.toggle('enlarged');
-        }
-    };
-
-    console.log('赞赏功能初始化完成');
-};
-
 // 当页面加载完成时初始化应用
 document.addEventListener('DOMContentLoaded', () => {
     console.log('页面加载完成，开始初始化...');
-    
-    // 初始化主应用
     App.init();
-    
-    // 初始化赞赏功能
-    initSupportFeature();
-    
-    console.log('所有功能初始化完成');
+    console.log('应用初始化完成');
 });

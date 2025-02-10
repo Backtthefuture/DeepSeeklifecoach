@@ -75,6 +75,32 @@ const Storage = {
         return conversation;
     },
 
+    // 删除对话
+    deleteConversation(id) {
+        try {
+            // 获取当前对话列表
+            let conversations = this.getConversations();
+            
+            // 找到要删除的对话索引
+            const index = conversations.findIndex(c => c.id === id);
+            if (index === -1) {
+                throw new Error('对话不存在');
+            }
+            
+            // 删除对话
+            conversations.splice(index, 1);
+            
+            // 保存更新后的对话列表
+            localStorage.setItem(this.keys.conversations, JSON.stringify(conversations));
+            
+            // 返回更新后的对话列表
+            return conversations;
+        } catch (error) {
+            console.error('删除对话失败:', error);
+            throw error;
+        }
+    },
+
     // 保存周报
     saveWeeklyReport(report) {
         const reports = this.getWeeklyReports();

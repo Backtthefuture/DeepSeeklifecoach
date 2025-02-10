@@ -81,22 +81,11 @@ const App = {
 
     // 加载对话历史
     loadConversations() {
-        const conversations = Storage.getConversations();
-        const conversationList = document.getElementById('conversationList');
-        conversationList.innerHTML = '';
-
-        conversations.forEach(conversation => {
-            const div = document.createElement('div');
-            div.className = 'conversation-item';
-            div.innerHTML = `
-                <div class="date">${new Date(conversation.id).toLocaleDateString()}</div>
-                <div>${conversation.messages[0].content.substring(0, 50)}...</div>
-            `;
-            div.addEventListener('click', () => this.loadConversation(conversation.id));
-            conversationList.appendChild(div);
-        });
-
+        // 渲染对话列表
+        this.renderConversationList();
+        
         // 更新情绪图表
+        const conversations = Storage.getConversations();
         Charts.updateEmotionChart(conversations);
     },
 
@@ -134,7 +123,7 @@ const App = {
         // 如果是新对话
         if (!this.currentConversationId) {
             const newConversation = {
-                id: new Date().toISOString(),
+                id: Date.now().toString(), // 使用时间戳作为ID
                 messages: [userMessage]
             };
             Storage.saveConversation(newConversation);
@@ -463,6 +452,38 @@ const App = {
             .replace(/\n{2,}/g, '<br>');
     },
 
+    // 格式化日期显示
+    formatDate(timestamp) {
+        // 尝试解析时间戳或ISO字符串
+        let date;
+        if (/^\d+$/.test(timestamp)) {
+            // 如果是纯数字（时间戳），直接解析
+            date = new Date(parseInt(timestamp));
+        } else {
+            // 如果是ISO字符串，直接创建Date对象
+            date = new Date(timestamp);
+        }
+        
+        // 检查日期是否有效
+        if (isNaN(date.getTime())) {
+            return '未知日期';
+        }
+        
+        // 使用更友好的日期格式
+        const today = new Date();
+        const isToday = date.toDateString() === today.toDateString();
+        const isThisYear = date.getFullYear() === today.getFullYear();
+        
+        if (isToday) {
+            return '今天 ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+        } else if (isThisYear) {
+            return date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' }) + ' ' + 
+                   date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+        } else {
+            return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+    },
+
     // 更新分析部分
     updateInsightSection(elementId, content, defaultText) {
         const element = document.getElementById(elementId);
@@ -627,6 +648,139 @@ const App = {
         ['topicInsight', 'emotionInsight', 'keywordsInsight', 'aiInsight'].forEach(id => {
             document.getElementById(id).innerHTML = message;
         });
+    },
+
+    // 渲染对话列表
+    renderConversationList() {
+        const conversations = Storage.getConversations();
+        const listHtml = conversations.map(conv => {
+            const date = this.formatDate(conv.id);
+            const preview = conv.messages[0]?.content.substring(0, 30) + '...' || '';
+            const activeClass = conv.id === this.currentConversationId ? 'active' : '';
+            
+            return `
+                <div class="conversation-item ${activeClass}" data-id="${conv.id}">
+                    <div class="conversation-content">
+                        <div class="date">${date}</div>
+                        <div class="preview">${preview}</div>
+                    </div>
+                    <span class="delete-icon" title="删除对话">×</span>
+                </div>
+            `;
+        }).join('');
+        
+        document.getElementById('conversationList').innerHTML = listHtml;
+        
+        // 添加事件监听
+        document.querySelectorAll('.conversation-item').forEach(item => {
+            const id = item.dataset.id;
+            
+            // 对话点击事件
+            item.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('delete-icon')) {
+                    this.loadConversation(id);
+                }
+            });
+            
+            // 删除图标点击事件
+            const deleteIcon = item.querySelector('.delete-icon');
+            deleteIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.showDeleteConfirm(id);
+            });
+        });
+    },
+
+    // 显示删除确认对话框
+    showDeleteConfirm(id) {
+        const overlay = document.createElement('div');
+        overlay.className = 'dialog-overlay';
+        
+        const dialog = document.createElement('div');
+        dialog.className = 'confirm-dialog';
+        dialog.innerHTML = `
+            <h3>删除对话</h3>
+            <p>确定要删除这条对话吗？此操作不可恢复。</p>
+            <div class="dialog-buttons">
+                <button class="dialog-btn cancel-btn">取消</button>
+                <button class="dialog-btn confirm-btn">删除</button>
+            </div>
+        `;
+        
+        document.body.appendChild(overlay);
+        document.body.appendChild(dialog);
+        
+        const closeDialog = () => {
+            overlay.remove();
+            dialog.remove();
+        };
+        
+        // 绑定按钮事件
+        const cancelBtn = dialog.querySelector('.cancel-btn');
+        const confirmBtn = dialog.querySelector('.confirm-btn');
+        
+        cancelBtn.addEventListener('click', closeDialog);
+        
+        confirmBtn.addEventListener('click', async () => {
+            await this.deleteConversation(id);
+            closeDialog();
+        });
+    },
+
+    // 显示提示消息
+    showToast(message, duration = 2000) {
+        // 移除已存在的toast
+        const existingToast = document.querySelector('.toast');
+        if (existingToast) {
+            existingToast.remove();
+        }
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        // 添加淡入效果
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+        });
+        
+        // 定时移除
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    },
+
+    // 删除对话
+    async deleteConversation(id) {
+        try {
+            // 删除对话
+            const conversations = Storage.deleteConversation(id);
+            
+            // 如果删除的是当前对话，清空对话内容并重置当前对话ID
+            if (id === this.currentConversationId) {
+                this.currentConversationId = null;
+                document.getElementById('currentConversation').innerHTML = '';
+                
+                // 如果还有其他对话，选择第一个
+                if (conversations.length > 0) {
+                    this.loadConversation(conversations[0].id);
+                }
+            }
+            
+            // 更新对话列表
+            this.renderConversationList();
+            
+            // 更新周报分析
+            await this.updateWeeklyInsight();
+            
+            this.showToast('对话已删除');
+            
+        } catch (error) {
+            console.error('删除对话失败:', error);
+            this.showToast('删除失败，请重试');
+        }
     },
 };
 

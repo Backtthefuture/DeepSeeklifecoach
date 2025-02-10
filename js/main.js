@@ -33,6 +33,9 @@ const App = {
 
         // 导出数据按钮
         document.getElementById('exportData').addEventListener('click', () => this.exportData());
+
+        // 新建对话按钮
+        document.getElementById('newChat').addEventListener('click', () => this.startNewChat());
     },
 
     // 导出数据
@@ -151,6 +154,25 @@ const App = {
         this.loadConversations();
     },
 
+    // 新建对话
+    startNewChat() {
+        // 清空当前对话ID
+        this.currentConversationId = null;
+        
+        // 清空对话显示区域
+        document.getElementById('currentConversation').innerHTML = '';
+        
+        // 清空输入框
+        document.getElementById('userInput').value = '';
+        
+        // 重置情绪选择
+        document.querySelectorAll('.emotion-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+        document.querySelector('[data-emotion="neutral"]').classList.add('selected');
+        this.selectedEmotion = 'neutral';
+    },
+
     // 添加消息到显示区域
     appendMessage(message) {
         const container = document.getElementById('currentConversation');
@@ -167,7 +189,15 @@ const App = {
 
         const content = document.createElement('div');
         content.className = 'message-content';
-        content.textContent = message.content;
+        // 将换行符转换为 HTML 换行标签，同时进行 HTML 转义
+        const formattedContent = message.content
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;')
+            .replace(/\n/g, '<br>');
+        content.innerHTML = formattedContent;
 
         div.appendChild(header);
         div.appendChild(content);

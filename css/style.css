@@ -738,9 +738,18 @@ footer {
 }
 
 footer p {
-    margin: 0;
+    margin: 0 0 10px;
     color: #666;
     font-size: 14px;
+}
+
+.stats {
+    margin-top: 10px;
+}
+
+.stats img {
+    height: 20px;
+    vertical-align: middle;
 }
 
 /* 响应式设计 */

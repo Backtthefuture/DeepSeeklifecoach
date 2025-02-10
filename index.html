@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek R1 Life Coach - 你的AI生活思考助手</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- 情绪趋势图表 -->
+        <div class="emotion-chart">
+            <canvas id="emotionChart"></canvas>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="main-content">
+            <!-- 历史对话列表 -->
+            <div class="history-panel">
+                <h2>历史对话</h2>
+                <div id="conversationList"></div>
+            </div>
+
+            <!-- 当前对话区域 -->
+            <div class="chat-panel">
+                <!-- 对话内容展示区 -->
+                <div id="currentConversation" class="conversation-container"></div>
+
+                <!-- 输入区域 -->
+                <div class="input-area">
+                    <div class="emotion-selector">
+                        <button data-emotion="happy" class="emotion-btn">😊</button>
+                        <button data-emotion="sad" class="emotion-btn">😔</button>
+                        <button data-emotion="angry" class="emotion-btn">😡</button>
+                        <button data-emotion="anxious" class="emotion-btn">😨</button>
+                        <button data-emotion="neutral" class="emotion-btn">😐</button>
+                    </div>
+                    <textarea id="userInput" placeholder="分享你的想法..."></textarea>
+                    <button id="sendButton">发送</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 周报分析区域 -->
+        <div class="weekly-report">
+            <h2>周报分析</h2>
+            <div id="weeklyReport"></div>
+        </div>
+    </div>
+
+    <!-- JavaScript 文件 -->
+    <script src="js/storage.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

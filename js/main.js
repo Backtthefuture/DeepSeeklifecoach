@@ -5,23 +5,36 @@ const App = {
     // 当前对话ID
     currentConversationId: null,
 
-    // 初始化应用
-    init() {
-        this.bindEvents();
-        this.loadConversations();
-        Charts.initEmotionChart();
-        this.checkAndGenerateWeeklyReport();
+    // UI 状态常量
+    UIState: {
+        IDLE: 'idle',
+        LOADING: 'loading',
+        UPDATING: 'updating',
+        ERROR: 'error'
     },
 
-    // 绑定事件
-    bindEvents() {
+    // 当前 UI 状态
+    currentUIState: 'idle',
+
+    // 初始化应用
+    init() {
+        this.setupEventListeners();
+        this.loadConversations();
+        this.updateWeeklyInsight(); // 初始加载周报分析
+    },
+
+    // 设置事件监听
+    setupEventListeners() {
         // 情绪选择按钮
         document.querySelectorAll('.emotion-btn').forEach(btn => {
             btn.addEventListener('click', () => this.selectEmotion(btn.dataset.emotion));
         });
 
         // 发送按钮
-        document.getElementById('sendButton').addEventListener('click', () => this.sendMessage());
+        document.getElementById('sendButton').addEventListener('click', async () => {
+            await this.sendMessage();
+            this.updateWeeklyInsight();
+        });
 
         // 输入框回车发送
         document.getElementById('userInput').addEventListener('keypress', (e) => {
@@ -36,6 +49,11 @@ const App = {
 
         // 新建对话按钮
         document.getElementById('newChat').addEventListener('click', () => this.startNewChat());
+
+        // 刷新分析按钮
+        document.getElementById('refreshInsight').addEventListener('click', () => {
+            this.updateWeeklyInsight();
+        });
     },
 
     // 导出数据
@@ -406,7 +424,210 @@ const App = {
                 <div class="report-content">${report.content}</div>
             `;
         }
-    }
+    },
+
+    // 获取本周对话
+    getThisWeekConversations() {
+        const conversations = Storage.getConversations();
+        const today = new Date();
+        const monday = new Date(today);
+        monday.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1));
+        monday.setHours(0, 0, 0, 0);
+
+        return conversations.filter(c => new Date(c.id) >= monday);
+    },
+
+    // 格式化 Markdown 内容
+    formatMarkdown(content) {
+        if (!content) return '';
+
+        return content
+            // 处理标题
+            .replace(/^### (.*)/gm, '<h3>$1</h3>')
+            .replace(/^## (.*)/gm, '<h2>$2</h2>')
+            .replace(/^# (.*)/gm, '<h1>$1</h1>')
+
+            // 处理列表
+            .replace(/^\d+\. (.*)/gm, '<li class="numbered">$1</li>')
+            .replace(/^- (.*)/gm, '<li>$1</li>')
+            .replace(/(<li.*>.*<\/li>\n?)+/g, match => `<ul>${match}</ul>`)
+
+            // 处理强调
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            
+            // 处理段落
+            .replace(/^(?!<[hul])(.*$)/gm, '<p>$1</p>')
+            
+            // 处理换行
+            .replace(/\n{2,}/g, '<br>');
+    },
+
+    // 更新分析部分
+    updateInsightSection(elementId, content, defaultText) {
+        const element = document.getElementById(elementId);
+        if (!content || content.trim().length === 0) {
+            element.innerHTML = `<div class="empty-message">${defaultText}</div>`;
+            return;
+        }
+
+        element.innerHTML = this.formatMarkdown(content);
+    },
+
+    // 更新 UI 状态
+    updateUIState(state, message = '') {
+        this.currentUIState = state;
+        const statusIndicators = {
+            [this.UIState.IDLE]: '',
+            [this.UIState.LOADING]: '<div class="loading">分析中...</div>',
+            [this.UIState.UPDATING]: '<div class="loading">更新中...</div>',
+            [this.UIState.ERROR]: `<div class="error-message">${message}</div>`
+        };
+
+        ['topicInsight', 'emotionInsight', 'keywordsInsight', 'aiInsight'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element.innerHTML.includes('loading')) {
+                element.innerHTML = statusIndicators[state] || '';
+            }
+        });
+
+        // 更新刷新按钮状态
+        const refreshBtn = document.getElementById('refreshInsight');
+        if (refreshBtn) {
+            refreshBtn.disabled = state === this.UIState.LOADING || state === this.UIState.UPDATING;
+            refreshBtn.innerHTML = state === this.UIState.LOADING || state === this.UIState.UPDATING ? 
+                '<i class="icon">🔄</i> 更新中...' : '<i class="icon">🔄</i> 刷新分析';
+        }
+    },
+
+    // 编辑对话
+    async editConversation(conversation) {
+        try {
+            // 保存编辑
+            Storage.saveConversation(conversation);
+            
+            // 更新 UI 状态
+            this.updateUIState(this.UIState.UPDATING);
+            
+            // 触发分析更新
+            await this.updateWeeklyInsight();
+            
+            // 恢复空闲状态
+            this.updateUIState(this.UIState.IDLE);
+        } catch (error) {
+            console.error('编辑对话时出错:', error);
+            this.updateUIState(this.UIState.ERROR, '更新失败，请重试');
+        }
+    },
+
+    // 更新周报分析
+    async updateWeeklyInsight() {
+        try {
+            console.log('开始更新周报分析...');
+            
+            // 更新 UI 状态
+            this.updateUIState(this.UIState.LOADING);
+
+            // 获取本周对话
+            const conversations = this.getThisWeekConversations();
+            console.log('本周对话:', conversations);
+            
+            if (!conversations || conversations.length === 0) {
+                console.log('本周没有对话记录');
+                this.showNoDataMessage();
+                this.updateUIState(this.UIState.IDLE);
+                return;
+            }
+
+            // 获取分析结果
+            const analysis = await AI.analyzeWeekInsight(conversations);
+            console.log('收到AI分析结果:', analysis);
+
+            if (!analysis) {
+                throw new Error('未收到有效的分析结果');
+            }
+
+            // 解析分析结果
+            const sections = AI.parseInsightResponse(analysis);
+            console.log('解析后的分析结果:', sections);
+
+            if (!sections) {
+                throw new Error('解析分析结果失败');
+            }
+
+            // 更新各个部分
+            const sectionConfig = {
+                'topicInsight': ['topics', '暂无主题分析'],
+                'emotionInsight': ['emotions', '暂无情绪分析'],
+                'keywordsInsight': ['keywords', '暂无关键词'],
+                'aiInsight': ['insights', '暂无AI洞察']
+            };
+
+            Object.entries(sectionConfig).forEach(([elementId, [sectionKey, defaultText]]) => {
+                const content = sections[sectionKey];
+                if (!content || content === '解析错误') {
+                    document.getElementById(elementId).innerHTML = 
+                        `<div class="error-message">${defaultText}</div>`;
+                } else {
+                    this.updateInsightSection(elementId, content, defaultText);
+                }
+            });
+
+            // 更新最后更新时间
+            document.getElementById('lastUpdateTime').textContent = 
+                new Date().toLocaleString();
+
+            // 恢复空闲状态
+            this.updateUIState(this.UIState.IDLE);
+
+        } catch (error) {
+            console.error('更新周报分析错误:', error);
+            this.updateUIState(this.UIState.ERROR, `更新失败: ${error.message}`);
+        }
+    },
+
+    // 保存对话内容
+    saveConversationContent(conversationId, content) {
+        const conversation = Storage.getConversation(conversationId);
+        if (conversation) {
+            conversation.messages[0].content = content;
+            Storage.saveConversation(conversation);
+            
+            // 触发分析更新
+            this.editConversation(conversation);
+        }
+    },
+
+    // 显示无数据消息
+    showNoDataMessage() {
+        const message = `
+            <div style="text-align: center; color: #666; padding: 20px;">
+                <p>本周还没有对话记录</p>
+                <p>开始新的对话，分析将自动更新</p>
+            </div>
+        `;
+        
+        ['topicInsight', 'emotionInsight', 'keywordsInsight', 'aiInsight'].forEach(id => {
+            document.getElementById(id).innerHTML = message;
+        });
+        
+        document.getElementById('lastUpdateTime').textContent = new Date().toLocaleString();
+    },
+
+    // 显示错误消息
+    showErrorMessage(error) {
+        const message = `
+            <div style="text-align: center; color: #dc3545; padding: 20px;">
+                <p>分析更新失败</p>
+                <p>${error}</p>
+                <p>请稍后重试</p>
+            </div>
+        `;
+        
+        ['topicInsight', 'emotionInsight', 'keywordsInsight', 'aiInsight'].forEach(id => {
+            document.getElementById(id).innerHTML = message;
+        });
+    },
 };
 
 // 当页面加载完成时初始化应用

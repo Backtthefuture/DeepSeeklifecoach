@@ -812,9 +812,15 @@ button:disabled {
     width: 100%;
     height: 100%;
     background: rgba(0,0,0,0.6);
-    z-index: 1000;
+    z-index: 9999; /* 确保在最上层 */
     align-items: center;
     justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal[style*="display: flex"] {
+    opacity: 1;
 }
 
 .modal-content {
@@ -826,6 +832,12 @@ button:disabled {
     width: 90%;
     text-align: center;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+}
+
+.modal[style*="display: flex"] .modal-content {
+    transform: translateY(0);
 }
 
 .close-btn {

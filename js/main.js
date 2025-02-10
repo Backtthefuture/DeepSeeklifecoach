@@ -132,23 +132,43 @@ const App = {
         input.value = '';
         this.appendMessage(userMessage);
 
-        // 获取AI响应
-        const conversation = Storage.getConversation(this.currentConversationId);
-        const aiResponse = await AI.sendMessage(content, conversation);
-        
-        // 创建AI消息
-        const aiMessage = {
-            type: 'ai',
-            content: aiResponse,
-            timestamp: new Date().toISOString()
-        };
+        // 显示思考状态
+        const thinkingMessage = this.showThinkingMessage();
 
-        // 保存AI响应
-        conversation.messages.push(aiMessage);
-        Storage.updateConversation(this.currentConversationId, conversation);
-        
-        // 显示AI响应
-        this.appendMessage(aiMessage);
+        try {
+            // 获取AI响应
+            const conversation = Storage.getConversation(this.currentConversationId);
+            const aiResponse = await AI.sendMessage(content, conversation);
+
+            // 移除思考状态
+            this.removeThinkingMessage();
+
+            // 创建AI消息
+            const aiMessage = {
+                type: 'assistant',
+                content: aiResponse,
+                timestamp: new Date().toISOString()
+            };
+
+            // 保存AI响应
+            conversation.messages.push(aiMessage);
+            Storage.updateConversation(this.currentConversationId, conversation);
+
+            // 显示AI响应
+            this.appendMessage(aiMessage);
+        } catch (error) {
+            // 移除思考状态
+            this.removeThinkingMessage();
+
+            // 显示错误消息
+            const errorMessage = {
+                type: 'assistant',
+                content: '抱歉，我遇到了一些问题，请稍后再试。',
+                timestamp: new Date().toISOString()
+            };
+            this.appendMessage(errorMessage);
+            console.error('Error:', error);
+        }
 
         // 更新对话列表和图表
         this.loadConversations();
@@ -158,13 +178,13 @@ const App = {
     startNewChat() {
         // 清空当前对话ID
         this.currentConversationId = null;
-        
+
         // 清空对话显示区域
         document.getElementById('currentConversation').innerHTML = '';
-        
+
         // 清空输入框
         document.getElementById('userInput').value = '';
-        
+
         // 重置情绪选择
         document.querySelectorAll('.emotion-btn').forEach(btn => {
             btn.classList.remove('selected');
@@ -178,7 +198,7 @@ const App = {
         const container = document.getElementById('currentConversation');
         const div = document.createElement('div');
         div.className = `message ${message.type}-message`;
-        
+
         const header = document.createElement('div');
         header.className = 'message-header';
         header.innerHTML = `
@@ -231,7 +251,7 @@ const App = {
             .replace(/&gt;/g, '>')
             .replace(/&quot;/g, '"')
             .replace(/&amp;/g, '&');
-        
+
         // 创建编辑框
         content.innerHTML = `
             <textarea class="edit-textarea">${originalText}</textarea>
@@ -240,21 +260,21 @@ const App = {
                 <button class="cancel-btn">取消</button>
             </div>
         `;
-        
+
         // 自动聚焦并选中文本
         const textarea = content.querySelector('.edit-textarea');
         textarea.focus();
         textarea.select();
-        
+
         // 绑定保存和取消按钮事件
         this.bindEditButtons(messageElement, messageIndex, originalText);
     },
-    
+
     // 绑定编辑按钮事件
     bindEditButtons(messageElement, messageIndex, originalText) {
         const content = messageElement.querySelector('.message-content');
         const textarea = content.querySelector('.edit-textarea');
-        
+
         // 保存按钮
         content.querySelector('.save-btn').addEventListener('click', async () => {
             const newText = textarea.value.trim();
@@ -262,7 +282,7 @@ const App = {
                 this.exitEditMode(messageElement, originalText);
                 return;
             }
-            
+
             if (confirm('修改消息将会影响后续的对话内容，是否继续？')) {
                 // 更新消息
                 const updatedMessage = {
@@ -270,28 +290,28 @@ const App = {
                     content: newText,
                     lastEdited: new Date().toISOString()
                 };
-                
+
                 // 保存到存储
                 const updatedConversation = Storage.updateMessage(
-                    this.currentConversationId, 
-                    messageIndex, 
+                    this.currentConversationId,
+                    messageIndex,
                     updatedMessage
                 );
-                
+
                 // 更新界面
                 this.exitEditMode(messageElement, newText);
                 messageElement.classList.add('edited');
-                
+
                 // 删除界面上该消息后的所有消息
                 const container = document.getElementById('currentConversation');
                 const messages = Array.from(container.children);
                 messages.slice(messageIndex + 1).forEach(msg => container.removeChild(msg));
-                
+
                 // 重新获取 AI 回复
                 const aiResponse = await AI.sendMessage(newText, {
                     messages: updatedConversation.messages
                 });
-                
+
                 // 添加新的 AI 回复
                 const aiMessage = {
                     type: 'assistant',
@@ -300,25 +320,58 @@ const App = {
                 };
                 updatedConversation.messages.push(aiMessage);
                 Storage.updateConversation(
-                    this.currentConversationId, 
+                    this.currentConversationId,
                     updatedConversation
                 );
-                
+
                 // 显示新的 AI 回复
                 this.appendMessage(aiMessage);
             }
         });
-        
+
         // 取消按钮
         content.querySelector('.cancel-btn').addEventListener('click', () => {
             this.exitEditMode(messageElement, originalText);
         });
     },
-    
+
     // 退出编辑模式
     exitEditMode(messageElement, text) {
         const content = messageElement.querySelector('.message-content');
         content.innerHTML = text.replace(/\n/g, '<br>');
+    },
+
+    // 添加思考状态消息
+    showThinkingMessage() {
+        const container = document.getElementById('currentConversation');
+        const div = document.createElement('div');
+        div.className = 'message assistant-message thinking-message';
+
+        const header = document.createElement('div');
+        header.className = 'message-header';
+        header.innerHTML = `<span>AI教练</span>`;
+
+        const content = document.createElement('div');
+        content.className = 'message-content';
+        content.innerHTML = `思考中<span class="thinking-dots"></span>`;
+
+        div.appendChild(header);
+        div.appendChild(content);
+        container.appendChild(div);
+
+        // 滚动到底部
+        container.scrollTop = container.scrollHeight;
+
+        return div;
+    },
+
+    // 移除思考状态消息
+    removeThinkingMessage() {
+        const container = document.getElementById('currentConversation');
+        const thinkingMessage = container.querySelector('.thinking-message');
+        if (thinkingMessage) {
+            container.removeChild(thinkingMessage);
+        }
     },
 
     // 检查并生成周报
@@ -333,7 +386,7 @@ const App = {
             if (!lastReport || new Date(lastReport.date) < now.setHours(0, 0, 0, 0)) {
                 const conversations = Storage.getConversations();
                 const weeklyReport = await AI.generateWeeklyReport(conversations);
-                
+
                 Storage.saveWeeklyReport({
                     date: now.toISOString(),
                     content: weeklyReport

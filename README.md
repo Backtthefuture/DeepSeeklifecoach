@@ -58,6 +58,38 @@ Version: 0.1.6
 └── README.md          # 项目说明
 ```
 
+## 部署说明
+
+### Vercel 部署
+1. 在 GitHub 上创建一个新的仓库，并将代码推送到该仓库
+   ```bash
+   git init
+   git add .
+   git commit -m "Initial commit"
+   git remote add origin <你的GitHub仓库地址>
+   git push -u origin main
+   ```
+
+2. 在 [Vercel](https://vercel.com) 上注册账号并连接你的 GitHub 账号
+
+3. 在 Vercel 控制台中点击 "New Project"，选择你的 GitHub 仓库
+
+4. 配置部署选项：
+   - Framework Preset: 选择 "Other"
+   - Build Command: 留空
+   - Output Directory: 留空
+   - Install Command: 留空
+
+5. 点击 "Deploy" 开始部署
+
+部署完成后，Vercel 会自动为你的应用生成一个域名，格式类似：`your-app-name.vercel.app`
+
+### 自定义域名（可选）
+如果你想使用自己的域名：
+1. 在 Vercel 项目设置中找到 "Domains" 部分
+2. 添加你的自定义域名
+3. 按照 Vercel 的指示配置 DNS 记录
+
 ## 使用说明
 1. 在输入框中输入你的想法或困惑
 2. 选择当前的情绪状态

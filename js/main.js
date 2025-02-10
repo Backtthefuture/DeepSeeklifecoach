@@ -794,5 +794,47 @@ const App = {
     },
 };
 
+// 赞赏功能
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('supportModal');
+    const btn = document.getElementById('supportBtn');
+    const closeBtn = document.querySelector('.close-btn');
+    const qrcodeContainer = document.querySelector('.qrcode-container');
+    let isEnlarged = false;
+
+    // 打开弹窗
+    btn.onclick = () => {
+        modal.style.display = 'flex';
+    };
+
+    // 关闭弹窗
+    closeBtn.onclick = () => {
+        modal.style.display = 'none';
+        if (isEnlarged) {
+            qrcodeContainer.classList.remove('enlarged');
+            isEnlarged = false;
+        }
+    };
+
+    // 点击空白处关闭
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+            if (isEnlarged) {
+                qrcodeContainer.classList.remove('enlarged');
+                isEnlarged = false;
+            }
+        }
+    };
+
+    // 点击二维码切换大小
+    qrcodeContainer.onclick = (e) => {
+        if (e.target.tagName === 'IMG') {
+            isEnlarged = !isEnlarged;
+            qrcodeContainer.classList.toggle('enlarged');
+        }
+    };
+});
+
 // 当页面加载完成时初始化应用
 document.addEventListener('DOMContentLoaded', () => App.init());

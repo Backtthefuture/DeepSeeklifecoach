@@ -738,18 +738,21 @@ footer {
 }
 
 footer p {
-    margin: 0 0 10px;
+    margin: 0;
     color: #666;
     font-size: 14px;
 }
 
 .stats {
     margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .stats img {
-    height: 20px;
-    vertical-align: middle;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 /* 响应式设计 */

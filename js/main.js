@@ -423,7 +423,17 @@ const App = {
         monday.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1));
         monday.setHours(0, 0, 0, 0);
 
-        return conversations.filter(c => new Date(c.id) >= monday);
+        return conversations.filter(c => {
+            // 确保正确解析时间戳
+            const timestamp = parseInt(c.id);
+            if (isNaN(timestamp)) {
+                console.error('无效的对话ID:', c.id);
+                return false;
+            }
+            const convDate = new Date(timestamp);
+            console.log('对话日期:', convDate, '本周一:', monday, '是否本周:', convDate >= monday);
+            return convDate >= monday;
+        });
     },
 
     // 格式化 Markdown 内容

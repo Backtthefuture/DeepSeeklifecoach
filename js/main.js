@@ -185,11 +185,11 @@ const App = {
             <span>${message.type === 'user' ? '你' : 'AI教练'}</span>
             <span>${new Date(message.timestamp).toLocaleTimeString()}</span>
             ${message.emotion ? `<span>情绪: ${message.emotion}</span>` : ''}
+            ${message.type === 'user' ? '<span class="edit-icon">✎</span>' : ''}
         `;
 
         const content = document.createElement('div');
         content.className = 'message-content';
-        // 将换行符转换为 HTML 换行标签，同时进行 HTML 转义
         const formattedContent = message.content
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
@@ -203,8 +203,122 @@ const App = {
         div.appendChild(content);
         container.appendChild(div);
 
+        // 为用户消息添加编辑功能
+        if (message.type === 'user') {
+            const editIcon = header.querySelector('.edit-icon');
+            const messageIndex = container.children.length - 1;
+            editIcon.addEventListener('click', () => {
+                this.enterEditMode(div, messageIndex);
+            });
+        }
+
+        // 如果消息有编辑历史，添加已编辑标记
+        if (message.editHistory && message.editHistory.length > 0) {
+            div.classList.add('edited');
+        }
+
         // 滚动到底部
         container.scrollTop = container.scrollHeight;
+    },
+
+    // 进入编辑模式
+    enterEditMode(messageElement, messageIndex) {
+        const content = messageElement.querySelector('.message-content');
+        // 将 <br> 转换回换行符
+        const originalText = content.innerHTML
+            .replace(/<br\s*\/?>/g, '\n')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&amp;/g, '&');
+        
+        // 创建编辑框
+        content.innerHTML = `
+            <textarea class="edit-textarea">${originalText}</textarea>
+            <div class="edit-buttons">
+                <button class="save-btn">保存</button>
+                <button class="cancel-btn">取消</button>
+            </div>
+        `;
+        
+        // 自动聚焦并选中文本
+        const textarea = content.querySelector('.edit-textarea');
+        textarea.focus();
+        textarea.select();
+        
+        // 绑定保存和取消按钮事件
+        this.bindEditButtons(messageElement, messageIndex, originalText);
+    },
+    
+    // 绑定编辑按钮事件
+    bindEditButtons(messageElement, messageIndex, originalText) {
+        const content = messageElement.querySelector('.message-content');
+        const textarea = content.querySelector('.edit-textarea');
+        
+        // 保存按钮
+        content.querySelector('.save-btn').addEventListener('click', async () => {
+            const newText = textarea.value.trim();
+            if (newText === originalText) {
+                this.exitEditMode(messageElement, originalText);
+                return;
+            }
+            
+            if (confirm('修改消息将会影响后续的对话内容，是否继续？')) {
+                // 更新消息
+                const updatedMessage = {
+                    ...Storage.getMessage(this.currentConversationId, messageIndex),
+                    content: newText,
+                    lastEdited: new Date().toISOString()
+                };
+                
+                // 保存到存储
+                const updatedConversation = Storage.updateMessage(
+                    this.currentConversationId, 
+                    messageIndex, 
+                    updatedMessage
+                );
+                
+                // 更新界面
+                this.exitEditMode(messageElement, newText);
+                messageElement.classList.add('edited');
+                
+                // 删除界面上该消息后的所有消息
+                const container = document.getElementById('currentConversation');
+                const messages = Array.from(container.children);
+                messages.slice(messageIndex + 1).forEach(msg => container.removeChild(msg));
+                
+                // 重新获取 AI 回复
+                const aiResponse = await AI.sendMessage(newText, {
+                    messages: updatedConversation.messages
+                });
+                
+                // 添加新的 AI 回复
+                const aiMessage = {
+                    type: 'assistant',
+                    content: aiResponse,
+                    timestamp: new Date().toISOString()
+                };
+                updatedConversation.messages.push(aiMessage);
+                Storage.updateConversation(
+                    this.currentConversationId, 
+                    updatedConversation
+                );
+                
+                // 显示新的 AI 回复
+                this.appendMessage(aiMessage);
+            }
+        });
+        
+        // 取消按钮
+        content.querySelector('.cancel-btn').addEventListener('click', () => {
+            this.exitEditMode(messageElement, originalText);
+        });
+    },
+    
+    // 退出编辑模式
+    exitEditMode(messageElement, text) {
+        const content = messageElement.querySelector('.message-content');
+        content.innerHTML = text.replace(/\n/g, '<br>');
     },
 
     // 检查并生成周报

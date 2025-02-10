@@ -44,6 +44,37 @@ const Storage = {
         return conversations.find(c => c.id === conversationId);
     },
 
+    // 获取单条消息
+    getMessage(conversationId, messageIndex) {
+        const conversation = this.getConversation(conversationId);
+        return conversation.messages[messageIndex];
+    },
+
+    // 更新单条消息
+    updateMessage(conversationId, messageIndex, updatedMessage) {
+        const conversation = this.getConversation(conversationId);
+        
+        // 保存原始内容到编辑历史
+        if (!updatedMessage.editHistory) {
+            updatedMessage.editHistory = [];
+        }
+        updatedMessage.editHistory.push({
+            content: conversation.messages[messageIndex].content,
+            timestamp: new Date().toISOString()
+        });
+
+        // 更新消息
+        conversation.messages[messageIndex] = updatedMessage;
+        
+        // 删除该消息之后的所有 AI 回复
+        conversation.messages = conversation.messages.slice(0, messageIndex + 1);
+        
+        // 保存更新后的对话
+        this.updateConversation(conversationId, conversation);
+        
+        return conversation;
+    },
+
     // 保存周报
     saveWeeklyReport(report) {
         const reports = this.getWeeklyReports();

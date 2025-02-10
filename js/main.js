@@ -30,6 +30,23 @@ const App = {
                 this.sendMessage();
             }
         });
+
+        // 导出数据按钮
+        document.getElementById('exportData').addEventListener('click', () => this.exportData());
+    },
+
+    // 导出数据
+    exportData() {
+        const data = Storage.exportData();
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `lifecoach-data-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     },
 
     // 选择情绪

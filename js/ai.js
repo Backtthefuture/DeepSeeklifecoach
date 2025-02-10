@@ -12,7 +12,7 @@ const AI = {
         return `你是一位专业的生活教练，擅长倾听、共情和提供建议。
 当前对话主题：${conversation.topic || '未指定'}
 用户情绪状态：${conversation.messages[conversation.messages.length - 1].emotion}
-请基于用户的输入和历史记录，提供温暖、专业的回应。`;
+请基于用户的输入和历史记录，提供温暖、专业的回应。并适当提出问题，引导用户思考`;
     },
 
     // 发送消息到硅基流动 API

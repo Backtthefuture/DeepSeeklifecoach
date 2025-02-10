@@ -120,6 +120,22 @@ textarea {
     background-color: #45a049;
 }
 
+/* 导出按钮样式 */
+.export-btn {
+    background-color: #2196F3;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.export-btn:hover {
+    background-color: #1976D2;
+}
+
 /* 周报分析区域 */
 .weekly-report {
     background: white;

@@ -65,12 +65,14 @@ const Charts = {
         // 获取最近7天的数据
         const recentConversations = conversations
             .slice(-7)
-            .sort((a, b) => a.timestamp - b.timestamp);
+            .sort((a, b) => new Date(a.messages[0].timestamp) - new Date(b.messages[0].timestamp));
 
-        const labels = recentConversations.map(c => {
-            const date = new Date(c.timestamp);
-            return `${date.getMonth() + 1}月${date.getDate()}日`;
-        });
+        const labels = recentConversations.map(c => 
+            new Date(c.messages[0].timestamp).toLocaleDateString('zh-CN', {
+                month: '2-digit',
+                day: '2-digit'
+            })
+        );
 
         const emotionValues = recentConversations.map(c => {
             const emotion = c.messages[0].emotion;

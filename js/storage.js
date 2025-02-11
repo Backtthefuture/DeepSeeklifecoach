@@ -14,27 +14,6 @@ const Storage = {
         if (!localStorage.getItem(this.keys.weeklyReports)) {
             localStorage.setItem(this.keys.weeklyReports, JSON.stringify([]));
         }
-        
-        // 数据迁移：确保所有对话都有 timestamp 字段
-        this.migrateData();
-    },
-
-    // 数据迁移
-    migrateData() {
-        const conversations = this.getConversations();
-        let needsUpdate = false;
-
-        conversations.forEach(conversation => {
-            if (!conversation.timestamp) {
-                // 如果没有 timestamp，使用 id 作为 timestamp（因为 id 就是用时间戳创建的）
-                conversation.timestamp = parseInt(conversation.id);
-                needsUpdate = true;
-            }
-        });
-
-        if (needsUpdate) {
-            localStorage.setItem(this.keys.conversations, JSON.stringify(conversations));
-        }
     },
 
     // 保存新对话

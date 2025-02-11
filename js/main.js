@@ -123,7 +123,7 @@ const App = {
         // 如果是新对话
         if (!this.currentConversationId) {
             const newConversation = {
-                id: Date.now().toString(), // 使用时间戳作为ID
+                id: Math.floor(Date.now() / 1000).toString(), // 使用10位秒级时间戳
                 messages: [userMessage]
             };
             Storage.saveConversation(newConversation);

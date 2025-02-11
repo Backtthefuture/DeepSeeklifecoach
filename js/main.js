@@ -122,8 +122,10 @@ const App = {
 
         // 如果是新对话
         if (!this.currentConversationId) {
+            const timestamp = Date.now();
             const newConversation = {
-                id: Date.now().toString(), // 使用时间戳作为ID
+                id: timestamp.toString(), // 使用时间戳作为ID
+                timestamp: timestamp,    // 添加时间戳字段
                 messages: [userMessage]
             };
             Storage.saveConversation(newConversation);

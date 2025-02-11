@@ -18,6 +18,9 @@ const App = {
 
     // 初始化应用
     init() {
+        console.log('开始初始化应用...');
+        // 执行数据迁移
+        Storage.migrateData();
         this.setupEventListeners();
         this.loadConversations();
         this.updateWeeklyInsight(); // 初始加载周报分析

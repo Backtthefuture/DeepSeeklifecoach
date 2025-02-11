@@ -133,6 +133,33 @@ const Storage = {
         localStorage.removeItem(this.keys.conversations);
         localStorage.removeItem(this.keys.weeklyReports);
         this.init();
+    },
+
+    // 数据迁移：确保所有对话数据格式正确
+    migrateData() {
+        try {
+            const conversations = this.getConversations();
+            const migratedConversations = conversations.map(conversation => {
+                // 确保每条消息都有 timestamp
+                conversation.messages = conversation.messages.map(message => {
+                    if (!message.timestamp) {
+                        // 如果没有 timestamp，使用 id 创建一个
+                        const date = new Date(parseInt(conversation.id));
+                        message.timestamp = date.toISOString();
+                    }
+                    return message;
+                });
+                return conversation;
+            });
+            
+            // 保存迁移后的数据
+            localStorage.setItem(this.keys.conversations, JSON.stringify(migratedConversations));
+            console.log('数据迁移完成');
+            return migratedConversations;
+        } catch (error) {
+            console.error('数据迁移失败:', error);
+            throw error;
+        }
     }
 };
 

@@ -145,11 +145,25 @@ const App = {
         try {
             // 获取AI响应
             let fullResponse = '';
+            const thinkingMessageContent = thinkingMessage.querySelector('.message-content');
+            
             for await (const chunk of AI.sendMessage(content)) {
                 fullResponse += chunk;
-                // 更新思考消息的内容
-                const content = this.formatMarkdown(fullResponse);
-                thinkingMessage.querySelector('.message-content').innerHTML = content;
+                // 格式化并转义内容
+                const formattedContent = fullResponse
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;')
+                    .replace(/\n/g, '<br>');
+                
+                // 应用 Markdown 格式化
+                thinkingMessageContent.innerHTML = this.formatMarkdown(formattedContent);
+                
+                // 滚动到底部
+                const container = document.getElementById('currentConversation');
+                container.scrollTop = container.scrollHeight;
             }
 
             // 移除思考状态

@@ -1,6 +1,6 @@
 {
   "name": "deepseek-life-coach",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "基于 DeepSeek 大语言模型的生活教练应用",
   "main": "server.js",
   "scripts": {

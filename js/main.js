@@ -18,25 +18,40 @@ const App = {
 
     // 初始化应用
     init() {
-        this.setupEventListeners();
+        console.log('初始化应用...');
         this.loadConversations();
-        this.updateWeeklyInsight(); // 初始加载周报分析
+        this.setupEventListeners();
+        
+        // 初始化情绪图表
+        const ctx = document.getElementById('emotionChart').getContext('2d');
+        this.emotionChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: '情绪变化',
+                    data: [],
+                    borderColor: 'rgb(230, 0, 18)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
     },
 
     // 设置事件监听
     setupEventListeners() {
-        // 情绪选择按钮
-        document.querySelectorAll('.emotion-btn').forEach(btn => {
-            btn.addEventListener('click', () => this.selectEmotion(btn.dataset.emotion));
-        });
-
-        // 发送按钮
-        document.getElementById('sendButton').addEventListener('click', async () => {
-            await this.sendMessage();
-            this.updateWeeklyInsight();
-        });
-
-        // 输入框回车发送
+        // 设置发送按钮点击事件
+        document.getElementById('sendButton').addEventListener('click', () => this.sendMessage());
+        
+        // 设置输入框回车事件
         document.getElementById('userInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -44,16 +59,41 @@ const App = {
             }
         });
 
-        // 导出数据按钮
-        document.getElementById('exportData').addEventListener('click', () => this.exportData());
+        // 设置情绪选择按钮事件
+        document.querySelectorAll('.emotion-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.emotion-btn').forEach(btn => btn.classList.remove('selected'));
+                button.classList.add('selected');
+                this.selectedEmotion = button.dataset.emotion;
+            });
+        });
 
-        // 新建对话按钮
+        // 设置新对话按钮事件
         document.getElementById('newChat').addEventListener('click', () => this.startNewChat());
 
-        // 刷新分析按钮
-        document.getElementById('refreshInsight').addEventListener('click', () => {
-            this.updateWeeklyInsight();
+        // 设置导出数据按钮事件
+        document.getElementById('exportData').addEventListener('click', () => this.exportData());
+
+        // 设置分析按钮事件
+        document.getElementById('analyzeButton').addEventListener('click', () => {
+            const button = document.getElementById('analyzeButton');
+            button.disabled = true;
+            button.innerHTML = '<i class="icon">🔄</i> 分析中...';
+            
+            // 开始分析
+            this.updateWeeklyInsight().then(() => {
+                button.disabled = false;
+                button.innerHTML = '<i class="icon">📊</i> 重新分析';
+            }).catch(error => {
+                console.error('分析出错:', error);
+                button.disabled = false;
+                button.innerHTML = '<i class="icon">📊</i> 重试分析';
+                this.showErrorMessage('分析过程中出现错误，请重试');
+            });
         });
+
+        // 默认选中 neutral 情绪
+        document.querySelector('[data-emotion="neutral"]').classList.add('selected');
     },
 
     // 导出数据

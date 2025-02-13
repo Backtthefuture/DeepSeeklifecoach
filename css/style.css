@@ -221,6 +221,13 @@ textarea:focus {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.weekly-report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
 .weekly-report h2 {
     margin: 0 0 20px 0;
     color: #333;
@@ -783,4 +790,38 @@ footer p {
     .card-content {
         max-height: 200px;
     }
+}
+
+.analyze-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: var(--chinese-red);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.analyze-btn:hover {
+    background-color: var(--chinese-red-light);
+}
+
+.analyze-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.analyze-btn .icon {
+    font-size: 16px;
+}
+
+.placeholder-text {
+    color: var(--text-secondary);
+    font-size: 14px;
+    text-align: center;
+    padding: 20px;
 }

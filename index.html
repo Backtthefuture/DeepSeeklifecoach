@@ -49,7 +49,12 @@
 
         <!-- 周报分析区域 -->
         <div class="weekly-report">
-            <h2>本周对话回顾</h2>
+            <div class="weekly-report-header">
+                <h2>本周对话回顾</h2>
+                <button id="analyzeButton" class="analyze-btn">
+                    <i class="icon">📊</i> 分析本周对话
+                </button>
+            </div>
             <div class="insight-grid">
                 <div class="insight-card">
                     <div class="card-header">
@@ -57,7 +62,7 @@
                         <h3>主要话题</h3>
                     </div>
                     <div id="topicInsight" class="card-content">
-                        <div class="loading">分析中...</div>
+                        <div class="placeholder-text">点击上方按钮开始分析</div>
                     </div>
                 </div>
                 <div class="insight-card">
@@ -66,7 +71,7 @@
                         <h3>情绪变化</h3>
                     </div>
                     <div id="emotionInsight" class="card-content">
-                        <div class="loading">分析中...</div>
+                        <div class="placeholder-text">点击上方按钮开始分析</div>
                     </div>
                 </div>
                 <div class="insight-card">
@@ -75,7 +80,7 @@
                         <h3>关键词</h3>
                     </div>
                     <div id="keywordsInsight" class="card-content">
-                        <div class="loading">分析中...</div>
+                        <div class="placeholder-text">点击上方按钮开始分析</div>
                     </div>
                 </div>
                 <div class="insight-card">
@@ -84,15 +89,12 @@
                         <h3>AI 洞察</h3>
                     </div>
                     <div id="aiInsight" class="card-content">
-                        <div class="loading">分析中...</div>
+                        <div class="placeholder-text">点击上方按钮开始分析</div>
                     </div>
                 </div>
             </div>
             <div class="last-update">
                 上次更新: <span id="lastUpdateTime">-</span>
-                <button id="refreshInsight" class="refresh-btn">
-                    <i class="icon">🔄</i> 刷新分析
-                </button>
             </div>
         </div>
 

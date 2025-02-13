@@ -123,7 +123,7 @@ const App = {
         // 如果是新对话
         if (!this.currentConversationId) {
             const newConversation = {
-                id: Date.now().toString(), // 使用时间戳作为ID
+                id: Date.now().toString(),
                 messages: [userMessage]
             };
             Storage.saveConversation(newConversation);
@@ -144,8 +144,13 @@ const App = {
 
         try {
             // 获取AI响应
-            const conversation = Storage.getConversation(this.currentConversationId);
-            const aiResponse = await AI.sendMessage(content, conversation);
+            let fullResponse = '';
+            for await (const chunk of AI.sendMessage(content)) {
+                fullResponse += chunk;
+                // 更新思考消息的内容
+                const content = this.formatMarkdown(fullResponse);
+                thinkingMessage.querySelector('.message-content').innerHTML = content;
+            }
 
             // 移除思考状态
             this.removeThinkingMessage();
@@ -153,17 +158,22 @@ const App = {
             // 创建AI消息
             const aiMessage = {
                 type: 'assistant',
-                content: aiResponse,
+                content: fullResponse,
                 timestamp: new Date().toISOString()
             };
 
             // 保存AI响应
+            const conversation = Storage.getConversation(this.currentConversationId);
             conversation.messages.push(aiMessage);
             Storage.updateConversation(this.currentConversationId, conversation);
 
             // 显示AI响应
             this.appendMessage(aiMessage);
+
+            // 更新对话列表和图表
+            this.loadConversations();
         } catch (error) {
+            console.error('发送消息时出错:', error);
             // 移除思考状态
             this.removeThinkingMessage();
 
@@ -174,11 +184,7 @@ const App = {
                 timestamp: new Date().toISOString()
             };
             this.appendMessage(errorMessage);
-            console.error('Error:', error);
         }
-
-        // 更新对话列表和图表
-        this.loadConversations();
     },
 
     // 新建对话
@@ -217,14 +223,19 @@ const App = {
 
         const content = document.createElement('div');
         content.className = 'message-content';
-        const formattedContent = message.content
+        
+        // 确保消息内容存在且是字符串
+        const messageContent = (message.content || '').toString();
+        
+        const formattedContent = messageContent
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;')
             .replace(/\n/g, '<br>');
-        content.innerHTML = formattedContent;
+            
+        content.innerHTML = this.formatMarkdown(formattedContent);
 
         div.appendChild(header);
         div.appendChild(content);
@@ -570,8 +581,16 @@ const App = {
                 return;
             }
 
+            // 处理对话数据
+            const processedConversations = conversations.map(conv => ({
+                timestamp: conv.timestamp,
+                content: conv.messages.map(msg => 
+                    `${msg.type === 'user' ? '用户' : 'AI'}: ${msg.content}`
+                ).join('\n')
+            }));
+
             // 获取分析结果
-            const analysis = await AI.analyzeWeekInsight(conversations);
+            const analysis = await AI.analyzeWeekInsight(processedConversations);
             console.log('收到AI分析结果:', analysis);
 
             if (!analysis) {

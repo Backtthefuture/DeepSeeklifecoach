@@ -736,8 +736,8 @@ const App = {
         cancelBtn.addEventListener('click', closeDialog);
         
         confirmBtn.addEventListener('click', async () => {
-            await this.deleteConversation(id);
-            closeDialog();
+            closeDialog();  // 先关闭弹层
+            await this.deleteConversation(id);  // 再执行删除操作
         });
     },
 

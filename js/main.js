@@ -240,14 +240,21 @@ const App = {
 
         const content = document.createElement('div');
         content.className = 'message-content';
-        const formattedContent = message.content
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;')
-            .replace(/\n/g, '<br>');
-        content.innerHTML = formattedContent;
+        
+        if (message.type === 'assistant') {
+            // 使用 marked.js 解析 Markdown
+            content.innerHTML = marked.parse(message.content);
+        } else {
+            // 用户消息保持原样
+            const formattedContent = message.content
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;')
+                .replace(/\n/g, '<br>');
+            content.innerHTML = formattedContent;
+        }
 
         div.appendChild(header);
         div.appendChild(content);

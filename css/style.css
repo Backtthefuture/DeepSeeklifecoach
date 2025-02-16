@@ -391,6 +391,51 @@ textarea:focus {
     border: 1px solid rgba(230, 0, 18, 0.1);
 }
 
+.ai-message .message-content {
+    line-height: 1.6;
+}
+
+.ai-message .message-content blockquote {
+    border-left: 4px solid #4a90e2;
+    margin: 8px 0;
+    padding: 8px 16px;
+    background: #f8f9fa;
+    color: #555;
+}
+
+.ai-message .message-content h3 {
+    color: #2c3e50;
+    margin: 16px 0 8px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #eee;
+}
+
+.ai-message .message-content ul {
+    margin: 8px 0;
+    padding-left: 24px;
+}
+
+.ai-message .message-content li {
+    margin: 4px 0;
+}
+
+.ai-message .message-content strong {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.ai-message .message-content em {
+    color: #666;
+}
+
+.ai-message .message-content code {
+    background: #f5f7fa;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
 .message-header {
     display: flex;
     justify-content: space-between;

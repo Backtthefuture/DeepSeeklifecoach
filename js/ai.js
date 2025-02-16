@@ -117,11 +117,11 @@ const AI = {
     // 生成系统提示词
     generateSystemPrompt(conversation) {
         if (!conversation || !conversation.messages || conversation.messages.length === 0) {
-            return '你是一位专业的生活教练，擅长倾听、共情和提供建议。请基于用户的输入提供温暖、专业的回应。';
+            return '你是一位专业的life coach，擅长倾听、共情。用人话安慰用户，并引导他说出更多';
         }
 
         const lastMessage = conversation.messages[conversation.messages.length - 1];
-        return `你是一位专业的生活教练，擅长倾听、共情和提供建议。
+        return `你是一位专业的life coach，擅长倾听、共情。
 当前对话主题：${conversation.topic || '未指定'}
 用户情绪状态：${lastMessage.emotion || '未知'}
 请基于用户的输入和历史记录，先用同理心理解用户当下的情绪，以适当提出问题，引导用户思考为主，少给直接的建议，除非用户强烈要求。注意使用通俗易懂的语言。`;

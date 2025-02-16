@@ -131,65 +131,57 @@ const App = {
         const content = input.value.trim();
         if (!content) return;
 
-        // 创建用户消息
-        const userMessage = {
-            type: 'user',
-            content: content,
-            emotion: this.selectedEmotion,
-            timestamp: new Date().toISOString()
-        };
-
-        // 如果是新对话
-        if (!this.currentConversationId) {
-            const newConversation = {
-                id: Date.now().toString(), // 使用时间戳作为ID
-                messages: [userMessage]
-            };
-            Storage.saveConversation(newConversation);
-            this.currentConversationId = newConversation.id;
-        } else {
-            // 添加到现有对话
-            const conversation = Storage.getConversation(this.currentConversationId);
-            conversation.messages.push(userMessage);
-            Storage.updateConversation(this.currentConversationId, conversation);
-        }
-
-        // 清空输入框并显示消息
-        input.value = '';
-        this.appendMessage(userMessage);
-
-        // 显示思考状态
-        const thinkingMessage = this.showThinkingMessage();
-
         try {
-            // 获取AI响应
-            const conversation = Storage.getConversation(this.currentConversationId);
-            
-            // 创建AI消息元素
-            const aiMessage = {
-                type: 'assistant',
-                content: '',
-                timestamp: new Date().toISOString()
+            // 清空输入框
+            input.value = '';
+            // 创建用户消息
+            const userMessage = {
+                type: 'user',
+                content: content,
+                timestamp: new Date().toISOString(),
+                emotion: this.selectedEmotion
             };
-            this.appendMessage(aiMessage);
-            const messageElement = document.querySelector('#currentConversation .message:last-child .message-content');
             
-            // 移除思考状态
-            this.removeThinkingMessage();
-            
+            // 如果是新对话
+            if (!this.currentConversationId) {
+                const newConversation = {
+                    id: Date.now().toString(), // 使用时间戳作为ID
+                    messages: [userMessage]
+                };
+                Storage.saveConversation(newConversation);
+                this.currentConversationId = newConversation.id;
+            } else {
+                // 添加到现有对话
+                const conversation = Storage.getConversation(this.currentConversationId);
+                conversation.messages.push(userMessage);
+                Storage.updateConversation(this.currentConversationId, conversation);
+            }
+
+            // 显示消息
+            this.appendMessage(userMessage);
+
+            // 创建 AI 消息容器
+            const aiMessageElement = this.createStreamingMessageContainer();
+            let streamContent = '';
+
             // 使用流式输出
-            const aiResponse = await AI.sendMessage(content, conversation, (chunk) => {
-                aiMessage.content += chunk;
-                messageElement.innerHTML = aiMessage.content.replace(/\n/g, '<br>');
+            const aiResponse = await AI.sendMessage(content, Storage.getConversation(this.currentConversationId), (chunk) => {
+                // 累积内容
+                streamContent += chunk;
+                // 更新显示
+                this.handleStreamingMessage(aiMessageElement, streamContent);
             });
             
             // 保存完整的AI响应
+            const aiMessage = {
+                type: 'assistant',
+                content: streamContent,
+                timestamp: new Date().toISOString()
+            };
+            const conversation = Storage.getConversation(this.currentConversationId);
             conversation.messages.push(aiMessage);
             Storage.updateConversation(this.currentConversationId, conversation);
         } catch (error) {
-            // 移除思考状态
-            this.removeThinkingMessage();
-
             // 显示错误消息
             const errorMessage = {
                 type: 'assistant',
@@ -378,37 +370,30 @@ const App = {
         content.innerHTML = text.replace(/\n/g, '<br>');
     },
 
-    // 添加思考状态消息
-    showThinkingMessage() {
+    // 创建流式消息容器
+    createStreamingMessageContainer() {
         const container = document.getElementById('currentConversation');
         const div = document.createElement('div');
-        div.className = 'message assistant-message thinking-message';
-
-        const header = document.createElement('div');
-        header.className = 'message-header';
-        header.innerHTML = `<span>AI教练</span>`;
-
-        const content = document.createElement('div');
-        content.className = 'message-content';
-        content.innerHTML = `思考中<span class="thinking-dots"></span>`;
-
-        div.appendChild(header);
-        div.appendChild(content);
+        div.className = 'message assistant-message';
+        div.innerHTML = `
+            <div class="message-header">
+                <span>AI教练</span>
+                <span>${new Date().toLocaleTimeString()}</span>
+            </div>
+            <div class="message-content"></div>
+        `;
         container.appendChild(div);
-
-        // 滚动到底部
         container.scrollTop = container.scrollHeight;
-
         return div;
     },
 
-    // 移除思考状态消息
-    removeThinkingMessage() {
-        const container = document.getElementById('currentConversation');
-        const thinkingMessage = container.querySelector('.thinking-message');
-        if (thinkingMessage) {
-            container.removeChild(thinkingMessage);
-        }
+    // 处理流式消息更新
+    handleStreamingMessage(messageElement, content) {
+        const contentDiv = messageElement.querySelector('.message-content');
+        // 使用 marked.parse 解析整个内容
+        contentDiv.innerHTML = marked.parse(content);
+        // 滚动到底部
+        messageElement.parentElement.scrollTop = messageElement.parentElement.scrollHeight;
     },
 
     // 检查并生成周报

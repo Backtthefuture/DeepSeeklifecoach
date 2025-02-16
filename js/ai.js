@@ -117,7 +117,7 @@ const AI = {
     // 生成系统提示词
     generateSystemPrompt(conversation) {
         if (!conversation || !conversation.messages || conversation.messages.length === 0) {
-            return '你是一位专业的life coach，擅长倾听、共情。用人话安慰用户，并引导他说出更多';
+            return '你是一位专业的life coach，擅长倾听、共情。每次收到用户的内容，就用人话安慰用户，并挖掘他可能关心的要素，鼓励他透露更多的情绪和想法，少给直接的建议，除非用户强烈要求。注意使用通俗易懂的语言。';
         }
 
         const lastMessage = conversation.messages[conversation.messages.length - 1];

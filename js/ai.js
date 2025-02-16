@@ -14,20 +14,38 @@ const AI = {
                 endpoint: this.config.endpoint,
                 message: message
             });
-
+    
+            // 构建消息历史
+            let messages = [];
+            
+            // 如果有历史对话，添加历史消息
+            if (conversation && conversation.messages) {
+                messages = conversation.messages.map(msg => ({
+                    role: msg.isUser ? 'user' : 'assistant',
+                    content: msg.content
+                }));
+            }
+            
+            if (conversation && Array.isArray(conversation)) {
+                // 如果存在历史对话记录，则将其加入 messages 数组
+                messages.push(...conversation);
+            }
+            // 添加当前用户的新消息
+            messages.push({
+                role: 'user',
+                content: message
+            });
+    
             const requestBody = {
                 model: this.config.model,
-                messages: [{
-                    role: 'user',
-                    content: message
-                }],
+                messages: messages,  // 使用包含历史记录的messages
                 temperature: 0.7,
                 max_tokens: 2000,
                 stream: Boolean(onStream)
             };
-
+    
             console.log('发送请求体:', JSON.stringify(requestBody, null, 2));
-
+    
             const response = await fetch(this.config.endpoint, {
                 method: 'POST',
                 headers: {

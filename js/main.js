@@ -54,6 +54,8 @@ const App = {
         document.getElementById('refreshInsight').addEventListener('click', () => {
             this.updateWeeklyInsight();
         });
+
+
     },
 
     // 导出数据

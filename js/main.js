@@ -20,7 +20,24 @@ const App = {
     init() {
         this.setupEventListeners();
         this.loadConversations();
-        this.updateWeeklyInsight(); // 初始加载周报分析
+        this.showInitialInsightState(); // 显示初始分析状态
+    },
+
+    // 显示初始分析状态
+    showInitialInsightState() {
+        const sections = ['topicInsight', 'emotionInsight', 'keywordsInsight', 'aiInsight'];
+        sections.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.innerHTML = '<div class="initial-state">点击"开始分析"按钮进行分析</div>';
+            }
+        });
+        // 更新最后分析时间
+        const lastUpdateElement = document.getElementById('lastUpdateTime');
+        if (lastUpdateElement) {
+            const lastUpdate = localStorage.getItem('lastInsightUpdate');
+            lastUpdateElement.textContent = lastUpdate ? this.formatDate(parseInt(lastUpdate)) : '从未分析';
+        }
     },
 
     // 设置事件监听
@@ -50,8 +67,8 @@ const App = {
         // 新建对话按钮
         document.getElementById('newChat').addEventListener('click', () => this.startNewChat());
 
-        // 刷新分析按钮
-        document.getElementById('refreshInsight').addEventListener('click', () => {
+        // 开始分析按钮
+        document.getElementById('startAnalysis').addEventListener('click', () => {
             this.updateWeeklyInsight();
         });
 
@@ -559,67 +576,48 @@ const App = {
 
     // 更新周报分析
     async updateWeeklyInsight() {
-        try {
-            console.log('开始更新周报分析...');
-            
-            // 更新 UI 状态
-            this.updateUIState(this.UIState.LOADING);
+        // 更新UI状态为加载中
+        this.updateUIState(this.UIState.LOADING, '正在分析对话数据...');
 
-            // 获取本周对话
+        // 显示加载状态
+        const sections = ['topicInsight', 'emotionInsight', 'keywordsInsight', 'aiInsight'];
+        sections.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.innerHTML = '<div class="loading">分析中...</div>';
+            }
+        });
+
+        try {
             const conversations = this.getThisWeekConversations();
-            console.log('本周对话:', conversations);
-            
             if (!conversations || conversations.length === 0) {
-                console.log('本周没有对话记录');
                 this.showNoDataMessage();
                 this.updateUIState(this.UIState.IDLE);
                 return;
             }
 
-            // 获取分析结果
-            const analysis = await AI.analyzeWeekInsight(conversations);
-            console.log('收到AI分析结果:', analysis);
-
-            if (!analysis) {
-                throw new Error('未收到有效的分析结果');
-            }
-
-            // 解析分析结果
-            const sections = AI.parseInsightResponse(analysis);
-            console.log('解析后的分析结果:', sections);
-
-            if (!sections) {
-                throw new Error('解析分析结果失败');
-            }
+            const response = await AI.analyzeWeekInsight(conversations);
+            const insights = AI.parseInsightResponse(response);
 
             // 更新各个部分
-            const sectionConfig = {
-                'topicInsight': ['topics', '暂无主题分析'],
-                'emotionInsight': ['emotions', '暂无情绪分析'],
-                'keywordsInsight': ['keywords', '暂无关键词'],
-                'aiInsight': ['insights', '暂无AI洞察']
-            };
+            this.updateInsightSection('topicInsight', insights.topics, '暂无主要话题');
+            this.updateInsightSection('emotionInsight', insights.emotions, '暂无情绪数据');
+            this.updateInsightSection('keywordsInsight', insights.keywords, '暂无关键词');
+            this.updateInsightSection('aiInsight', insights.insights, '暂无AI洞察');
 
-            Object.entries(sectionConfig).forEach(([elementId, [sectionKey, defaultText]]) => {
-                const content = sections[sectionKey];
-                if (!content || content === '解析错误') {
-                    document.getElementById(elementId).innerHTML = 
-                        `<div class="error-message">${defaultText}</div>`;
-                } else {
-                    this.updateInsightSection(elementId, content, defaultText);
-                }
-            });
+            // 记录最后更新时间
+            const currentTime = Date.now();
+            localStorage.setItem('lastInsightUpdate', currentTime.toString());
+            document.getElementById('lastUpdateTime').textContent = this.formatDate(currentTime);
 
-            // 更新最后更新时间
-            document.getElementById('lastUpdateTime').textContent = 
-                new Date().toLocaleString();
-
-            // 恢复空闲状态
+            // 更新UI状态为完成
             this.updateUIState(this.UIState.IDLE);
+            this.showToast('分析完成！');
 
         } catch (error) {
-            console.error('更新周报分析错误:', error);
-            this.updateUIState(this.UIState.ERROR, `更新失败: ${error.message}`);
+            console.error('分析周报时出错:', error);
+            this.showErrorMessage(error);
+            this.updateUIState(this.UIState.ERROR);
         }
     },
 

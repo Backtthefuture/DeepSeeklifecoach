@@ -842,3 +842,58 @@ footer p {
         max-height: 200px;
     }
 }
+
+/* 周报标题栏样式 */
+.weekly-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.weekly-header h2 {
+    margin: 0;
+    color: var(--chinese-red);
+    font-weight: 500;
+}
+
+/* 开始分析按钮样式 */
+.start-analysis-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: var(--chinese-red);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(230, 0, 18, 0.2);
+}
+
+.start-analysis-btn:hover {
+    background-color: var(--chinese-red-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(230, 0, 18, 0.3);
+}
+
+.start-analysis-btn:active {
+    background-color: var(--chinese-red-dark);
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(230, 0, 18, 0.2);
+}
+
+.start-analysis-btn .icon {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+/* 上次更新时间样式优化 */
+.last-update {
+    margin-top: 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    text-align: right;
+}

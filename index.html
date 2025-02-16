@@ -48,7 +48,12 @@
 
         <!-- 周报分析区域 -->
         <div class="weekly-report">
-            <h2>本周对话回顾</h2>
+            <div class="weekly-header">
+                <h2>本周对话回顾</h2>
+                <button id="startAnalysis" class="start-analysis-btn">
+                    <i class="icon">📊</i> 开始分析
+                </button>
+            </div>
             <div class="insight-grid">
                 <div class="insight-card">
                     <div class="card-header">
@@ -89,9 +94,6 @@
             </div>
             <div class="last-update">
                 上次更新: <span id="lastUpdateTime">-</span>
-                <button id="refreshInsight" class="refresh-btn">
-                    <i class="icon">🔄</i> 刷新分析
-                </button>
             </div>
         </div>
 

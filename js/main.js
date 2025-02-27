@@ -789,8 +789,8 @@ const App = {
         cancelBtn.addEventListener('click', closeDialog);
         
         confirmBtn.addEventListener('click', async () => {
-            await this.deleteConversation(id);
-            closeDialog();
+            closeDialog(); // 先关闭弹窗
+            await this.deleteConversation(id); // 然后异步删除对话
         });
     },
 

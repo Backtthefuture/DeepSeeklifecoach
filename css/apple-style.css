@@ -1,0 +1,833 @@
+/* 
+ * DeepSeek生活教练 - 苹果风格CSS
+ * 版本: 0.5.1
+ * 日期: 2025-02-27
+ * 
+ * 这个样式表实现了苹果设计风格的界面
+ */
+
+/* ===== 基础变量 ===== */
+:root {
+  /* 主色调 */
+  --apple-red: #FF3B30;       /* 苹果红色 */
+  --apple-blue: #007AFF;      /* 苹果蓝色 */
+  --apple-green: #34C759;     /* 苹果绿色 */
+  --apple-orange: #FF9500;    /* 苹果橙色 */
+  
+  /* 中性色 */
+  --apple-background: #F2F2F7; /* 背景色 */
+  --apple-card: #FFFFFF;      /* 卡片背景 */
+  --apple-border: #E5E5EA;    /* 边框颜色 */
+  --apple-text: #1D1D1F;      /* 主文本色 */
+  --apple-text-secondary: #8E8E93; /* 次要文本 */
+  
+  /* 尺寸和间距 */
+  --border-radius-small: 8px;  /* 小圆角 */
+  --border-radius-medium: 12px; /* 中圆角 */
+  --border-radius-large: 18px; /* 大圆角 */
+  --spacing-small: 8px;       /* 小间距 */
+  --spacing-medium: 16px;     /* 中间距 */
+  --spacing-large: 24px;      /* 大间距 */
+  
+  /* 阴影 */
+  --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== 基础样式 ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+  color: var(--apple-text);
+  background-color: var(--apple-background);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== 布局容器 ===== */
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ===== 顶部导航栏 ===== */
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 60px;
+  padding: 0 var(--spacing-large);
+  background-color: var(--apple-card);
+  box-shadow: var(--shadow-light);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.app-title {
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--apple-red);
+}
+
+.nav-buttons {
+  display: flex;
+  gap: var(--spacing-medium);
+}
+
+.nav-button {
+  padding: 8px 16px;
+  border-radius: 15px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.nav-button.primary {
+  background-color: var(--apple-red);
+  color: white;
+}
+
+.nav-button.secondary {
+  background-color: var(--apple-background);
+  color: var(--apple-text-secondary);
+}
+
+.nav-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-light);
+}
+
+/* ===== 主内容区域 ===== */
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ===== 侧边栏 ===== */
+.sidebar {
+  width: 250px;
+  background-color: var(--apple-card);
+  box-shadow: var(--shadow-light);
+  padding: var(--spacing-large);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  margin-bottom: var(--spacing-large);
+}
+
+.sidebar-title {
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: var(--spacing-medium);
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background-color: var(--apple-background);
+  border-radius: var(--border-radius-small);
+  padding: 8px 12px;
+  margin-bottom: var(--spacing-large);
+}
+
+.search-box input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 14px;
+  outline: none;
+  color: var(--apple-text);
+}
+
+.search-box input::placeholder {
+  color: var(--apple-text-secondary);
+}
+
+.conversation-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-medium);
+  flex: 1;
+}
+
+.conversation-item {
+  background-color: var(--apple-background);
+  border-radius: var(--border-radius-small);
+  padding: var(--spacing-medium);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.conversation-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-light);
+}
+
+.conversation-item.active {
+  background-color: rgba(0, 122, 255, 0.1);
+  border-left: 3px solid var(--apple-blue);
+}
+
+.conversation-title {
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: var(--apple-text);
+}
+
+.conversation-preview {
+  font-size: 13px;
+  color: var(--apple-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== 聊天区域 ===== */
+.chat-area {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--apple-background);
+  padding: var(--spacing-large);
+}
+
+.chat-container {
+  flex: 1;
+  background-color: var(--apple-card);
+  border-radius: var(--border-radius-medium);
+  box-shadow: var(--shadow-light);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.messages-container {
+  flex: 1;
+  padding: var(--spacing-large);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-medium);
+}
+
+.message {
+  max-width: 70%;
+  padding: var(--spacing-medium);
+  border-radius: var(--border-radius-large);
+  position: relative;
+}
+
+.message.user {
+  align-self: flex-end;
+  background-color: var(--apple-blue);
+  color: white;
+}
+
+.message.ai {
+  align-self: flex-start;
+  background-color: var(--apple-background);
+  color: var(--apple-text);
+}
+
+.message-time {
+  font-size: 12px;
+  color: var(--apple-text-secondary);
+  margin-top: 4px;
+  text-align: right;
+}
+
+.message.user .message-time {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ===== 输入区域 ===== */
+.input-area {
+  padding: var(--spacing-medium);
+  background-color: var(--apple-card);
+  border-top: 1px solid var(--apple-border);
+}
+
+.emotion-selector {
+  display: flex;
+  gap: var(--spacing-small);
+  margin-bottom: var(--spacing-medium);
+  background-color: var(--apple-background);
+  border-radius: 15px;
+  padding: 4px;
+  width: fit-content;
+}
+
+.emotion-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.emotion-btn.selected {
+  background-color: white;
+  box-shadow: var(--shadow-light);
+}
+
+.emotion-btn:hover:not(.selected) {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.input-container {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-medium);
+}
+
+.input-container textarea {
+  flex: 1;
+  border: 1px solid var(--apple-border);
+  border-radius: var(--border-radius-medium);
+  padding: var(--spacing-medium);
+  resize: none;
+  min-height: 80px;
+  max-height: 200px;
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input-container textarea:focus {
+  border-color: var(--apple-blue);
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+}
+
+.send-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--apple-red);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.send-button:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-light);
+}
+
+.send-button:active {
+  transform: scale(0.95);
+}
+
+/* ===== 分析面板样式 ===== */
+.analysis-panel {
+  background-color: var(--apple-card);
+  border-radius: var(--border-radius-medium);
+  box-shadow: var(--shadow-light);
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-medium);
+  border-bottom: 1px solid var(--apple-border);
+}
+
+.panel-title {
+  font-weight: 600;
+  color: var(--apple-text);
+}
+
+.insight-cards {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-small);
+}
+
+.insight-card {
+  background-color: var(--apple-background);
+  border-radius: var(--border-radius-small);
+  margin-bottom: var(--spacing-medium);
+  overflow: hidden;
+}
+
+.insight-card:last-child {
+  margin-bottom: 0;
+}
+
+.card-header {
+  padding: var(--spacing-small) var(--spacing-medium);
+  border-bottom: 1px solid var(--apple-border);
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--apple-text);
+}
+
+.card-content {
+  padding: var(--spacing-medium);
+  color: var(--apple-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.emotion-chart {
+  height: 200px;
+  width: 100%;
+  position: relative;
+}
+
+.insight-card:first-child {
+  height: 250px;
+}
+
+.insight-card:last-child {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.insight-card:last-child .card-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ===== 状态显示 ===== */
+.empty-state {
+  text-align: center;
+  padding: 20px;
+  color: var(--apple-text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.empty-state.error {
+  color: #dc3545;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+}
+
+.loading-spinner:after {
+  content: "";
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--apple-border);
+  border-top: 2px solid var(--apple-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.error-message {
+  text-align: center;
+  color: #dc3545;
+  padding: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ===== 响应式设计 ===== */
+@media (max-width: 1200px) {
+  .analysis-panel {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+  
+  .main-content {
+    flex-direction: column;
+  }
+}
+
+/* ===== 动画效果 ===== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.message {
+  animation: fadeIn 0.3s ease;
+}
+
+/* ===== 工具类 ===== */
+.hidden {
+  display: none !important;
+}
+
+/* ===== 弹窗样式 ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modal {
+  background-color: var(--apple-card);
+  border-radius: var(--border-radius-medium);
+  width: 90%;
+  max-width: 400px;
+  overflow: hidden;
+  box-shadow: var(--shadow-medium);
+}
+
+.modal-header {
+  padding: var(--spacing-medium);
+  border-bottom: 1px solid var(--apple-border);
+  text-align: center;
+}
+
+.modal-title {
+  font-weight: 600;
+  font-size: 17px;
+}
+
+.modal-content {
+  padding: var(--spacing-large);
+  text-align: center;
+}
+
+.modal-buttons {
+  display: flex;
+  border-top: 1px solid var(--apple-border);
+}
+
+.modal-button {
+  flex: 1;
+  padding: var(--spacing-medium);
+  border: none;
+  background: none;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.modal-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.modal-button.primary {
+  color: var(--apple-red);
+  font-weight: 600;
+}
+
+.modal-button:not(:last-child) {
+  border-right: 1px solid var(--apple-border);
+}
+
+/* ===== 通知提示 ===== */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.toast.show {
+  opacity: 1;
+}
+
+/* ===== Markdown 样式 ===== */
+.markdown {
+  line-height: 1.6;
+}
+
+.markdown h1, .markdown h2, .markdown h3, .markdown h4, .markdown h5, .markdown h6 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+}
+
+.markdown p {
+  margin-bottom: 1em;
+}
+
+.markdown ul, .markdown ol {
+  margin-bottom: 1em;
+  padding-left: 2em;
+}
+
+.markdown code {
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.markdown pre {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: var(--spacing-medium);
+  border-radius: var(--border-radius-small);
+  overflow-x: auto;
+  margin-bottom: 1em;
+}
+
+.markdown pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+.markdown blockquote {
+  border-left: 4px solid var(--apple-border);
+  padding-left: var(--spacing-medium);
+  color: var(--apple-text-secondary);
+  margin-bottom: 1em;
+}
+
+.markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1em;
+}
+
+.markdown th, .markdown td {
+  border: 1px solid var(--apple-border);
+  padding: 8px;
+  text-align: left;
+}
+
+.markdown th {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* ===== 加载动画 ===== */
+.loading-dots {
+  display: inline-flex;
+  align-items: center;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+  margin: 0 2px;
+  animation: dotPulse 1.5s infinite ease-in-out;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dotPulse {
+  0%, 100% { transform: scale(0.7); opacity: 0.5; }
+  50% { transform: scale(1); opacity: 1; }
+}
+
+/* ===== 页脚样式 ===== */
+footer {
+  background-color: var(--apple-card);
+  padding: var(--spacing-medium);
+  text-align: center;
+  border-top: 1px solid var(--apple-border);
+  margin-top: var(--spacing-large);
+}
+
+footer p {
+  color: var(--apple-text-secondary);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-medium);
+}
+
+.community-btn {
+  background-color: var(--apple-background);
+  color: var(--apple-text);
+  border: none;
+  border-radius: 15px;
+  padding: 5px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.community-btn:hover {
+  background-color: var(--apple-red);
+  color: white;
+}
+
+.stats {
+  margin-top: var(--spacing-small);
+}
+
+/* ===== 空状态样式 ===== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-large);
+  color: var(--apple-text-secondary);
+  text-align: center;
+  height: 200px;
+}
+
+.empty-state p {
+  margin: 5px 0;
+}
+
+/* ===== 编辑按钮样式 ===== */
+.edit-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  margin-left: 8px;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-button:hover {
+  opacity: 1;
+}
+
+/* 消息编辑模式 */
+.message.editing .message-content {
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 8px;
+  border-radius: var(--border-radius-small);
+  border: 1px solid var(--apple-blue);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  justify-content: flex-end;
+}
+
+.edit-actions button {
+  border: none;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.edit-actions .save-btn {
+  background-color: var(--apple-green);
+  color: white;
+}
+
+.edit-actions .cancel-btn {
+  background-color: var(--apple-background);
+  color: var(--apple-text);
+}
+
+/* ===== 思考状态样式 ===== */
+.thinking {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: var(--spacing-medium);
+  color: var(--apple-text-secondary);
+}
+
+.thinking .avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--apple-background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thinking .dots {
+  display: flex;
+  gap: 4px;
+}
+
+.thinking .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--apple-text-secondary);
+  animation: pulse 1.5s infinite;
+}
+
+.thinking .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.thinking .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}

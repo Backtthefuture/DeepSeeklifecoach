@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- 定义颜色 -->
+  <defs>
+    <linearGradient id="headerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FF3B30;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF9500;stop-opacity:1" />
+    </linearGradient>
+    <!-- 阴影定义 -->
+    <filter id="dropShadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2" />
+      <feOffset dx="0" dy="2" result="offsetblur" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.2" />
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="1200" height="800" fill="#F2F2F7" />
+
+  <!-- 顶部导航栏 -->
+  <rect x="0" y="0" width="1200" height="60" fill="#FFFFFF" filter="url(#dropShadow)" />
+  <text x="30" y="38" font-family="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif" font-size="22" font-weight="600" fill="#FF3B30">DeepSeek 生活教练</text>
+  
+  <!-- 导航按钮 -->
+  <rect x="980" y="15" width="90" height="30" rx="15" ry="15" fill="#F2F2F7" />
+  <text x="1000" y="35" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="14" fill="#8E8E93">设置</text>
+  <rect x="1080" y="15" width="90" height="30" rx="15" ry="15" fill="#FF3B30" />
+  <text x="1095" y="35" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="14" fill="#FFFFFF">新对话</text>
+
+  <!-- 主体内容区域 -->
+  <g>
+    <!-- 侧边栏 -->
+    <rect x="0" y="60" width="250" height="740" fill="#FFFFFF" filter="url(#dropShadow)" />
+    <text x="20" y="95" font-family="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif" font-size="17" font-weight="600" fill="#1D1D1F">历史对话</text>
+    
+    <!-- 搜索框 -->
+    <rect x="20" y="110" width="210" height="36" rx="8" ry="8" fill="#F2F2F7" />
+    <text x="45" y="133" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="14" fill="#8E8E93">搜索对话...</text>
+    <circle cx="35" cy="128" r="7" stroke="#8E8E93" stroke-width="2" fill="none" />
+    
+    <!-- 对话列表 -->
+    <rect x="20" y="160" width="210" height="70" rx="8" ry="8" fill="#F5F5F5" />
+    <text x="35" y="185" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="500" fill="#1D1D1F">今天的心情</text>
+    <text x="35" y="210" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#8E8E93">心情不错，今天天气很好...</text>
+    
+    <rect x="20" y="240" width="210" height="70" rx="8" ry="8" fill="#FFFFFF" stroke="#E5E5EA" stroke-width="1" />
+    <text x="35" y="265" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="500" fill="#1D1D1F">工作计划讨论</text>
+    <text x="35" y="290" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#8E8E93">关于下周的工作安排...</text>
+    
+    <rect x="20" y="320" width="210" height="70" rx="8" ry="8" fill="#FFFFFF" stroke="#E5E5EA" stroke-width="1" />
+    <text x="35" y="345" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="500" fill="#1D1D1F">健康建议</text>
+    <text x="35" y="370" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#8E8E93">关于饮食和运动的建议...</text>
+  </g>
+
+  <!-- 聊天主区域 -->
+  <rect x="250" y="60" width="650" height="740" fill="#F2F2F7" />
+  
+  <!-- 聊天内容区 -->
+  <rect x="270" y="80" width="610" height="580" rx="12" ry="12" fill="#FFFFFF" filter="url(#dropShadow)" />
+  
+  <!-- 用户消息 -->
+  <rect x="500" y="110" width="350" height="60" rx="18" ry="18" fill="#007AFF" />
+  <text x="520" y="145" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" fill="#FFFFFF">心情不错，今天天气很好，想出去走走</text>
+  <text x="820" y="180" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12" fill="#8E8E93">09:15</text>
+  
+  <!-- AI回复 -->
+  <rect x="300" y="190" width="400" height="100" rx="18" ry="18" fill="#F2F2F7" />
+  <text x="320" y="220" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" fill="#1D1D1F">很高兴听到你心情不错！天气好确实是个出去走走的好机会。</text>
+  <text x="320" y="250" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" fill="#1D1D1F">你有什么特别想去的地方吗？公园、海边或者只是在附近散步？</text>
+  <text x="300" y="310" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12" fill="#8E8E93">09:16</text>
+  
+  <!-- 用户消息2 -->
+  <rect x="500" y="330" width="350" height="60" rx="18" ry="18" fill="#007AFF" />
+  <text x="520" y="365" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" fill="#FFFFFF">我想去附近的公园，顺便锻炼一下身体</text>
+  <text x="820" y="400" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12" fill="#8E8E93">09:18</text>
+  
+  <!-- AI回复2 -->
+  <rect x="300" y="410" width="400" height="150" rx="18" ry="18" fill="#F2F2F7" />
+  <text x="320" y="440" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" fill="#1D1D1F">去公园是个很好的选择！既能享受自然，又能锻炼身体。</text>
+  <text x="320" y="470" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" fill="#1D1D1F">你可以考虑：</text>
+  <text x="320" y="500" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" fill="#1D1D1F">• 快步走或慢跑几圈</text>
+  <text x="320" y="530" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" fill="#1D1D1F">• 做一些简单的拉伸运动</text>
+  <text x="300" y="580" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12" fill="#8E8E93">09:19</text>
+  
+  <!-- 输入区域 -->
+  <rect x="270" y="680" width="610" height="100" rx="12" ry="12" fill="#FFFFFF" filter="url(#dropShadow)" />
+  
+  <!-- 情绪选择器 -->
+  <rect x="290" y="695" width="300" height="30" rx="15" ry="15" fill="#F2F2F7" />
+  <circle cx="320" cy="710" r="12" fill="#34C759" />
+  <text x="340" y="715" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="14" fill="#1D1D1F">😊 开心</text>
+  <circle cx="390" cy="710" r="12" fill="#F2F2F7" stroke="#8E8E93" stroke-width="1" />
+  <text x="410" y="715" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="14" fill="#8E8E93">😔 难过</text>
+  <circle cx="460" cy="710" r="12" fill="#F2F2F7" stroke="#8E8E93" stroke-width="1" />
+  <text x="480" y="715" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="14" fill="#8E8E93">😡 生气</text>
+  <circle cx="530" cy="710" r="12" fill="#F2F2F7" stroke="#8E8E93" stroke-width="1" />
+  <text x="550" y="715" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="14" fill="#8E8E93">😐 平静</text>
+  
+  <!-- 文本输入框 -->
+  <rect x="290" y="735" width="500" height="36" rx="8" ry="8" fill="#F2F2F7" />
+  <text x="310" y="758" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" fill="#8E8E93">分享你的想法...</text>
+  
+  <!-- 发送按钮 -->
+  <circle cx="830" cy="753" r="18" fill="#FF3B30" />
+  <path d="M824,753 L836,753 M830,747 L830,759" stroke="#FFFFFF" stroke-width="2" />
+
+  <!-- 分析面板 -->
+  <rect x="900" y="60" width="300" height="740" fill="#FFFFFF" filter="url(#dropShadow)" />
+  <text x="920" y="95" font-family="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif" font-size="17" font-weight="600" fill="#1D1D1F">对话分析</text>
+  
+  <!-- 情绪趋势图 -->
+  <rect x="920" y="110" width="260" height="150" rx="8" ry="8" fill="#FFFFFF" stroke="#E5E5EA" stroke-width="1" />
+  <text x="935" y="135" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="500" fill="#1D1D1F">情绪趋势</text>
+  
+  <!-- 简化的图表 -->
+  <polyline points="935,220 955,200 975,210 995,190 1015,195 1035,180 1055,185 1075,170 1095,175 1115,160 1135,165 1155,150" 
+            stroke="#FF3B30" stroke-width="2" fill="none" />
+  <line x1="935" y1="230" x2="1155" y2="230" stroke="#E5E5EA" stroke-width="1" />
+  <line x1="935" y1="150" x2="935" y2="230" stroke="#E5E5EA" stroke-width="1" />
+  
+  <!-- 主题分析卡片 -->
+  <rect x="920" y="280" width="260" height="120" rx="8" ry="8" fill="#FFFFFF" stroke="#E5E5EA" stroke-width="1" />
+  <text x="935" y="305" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="500" fill="#1D1D1F">主要话题</text>
+  <rect x="935" y="320" width="80" height="24" rx="12" ry="12" fill="#F2F2F7" />
+  <text x="950" y="337" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#8E8E93">户外活动</text>
+  <rect x="1025" y="320" width="80" height="24" rx="12" ry="12" fill="#F2F2F7" />
+  <text x="1040" y="337" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#8E8E93">健康</text>
+  <rect x="935" y="355" width="80" height="24" rx="12" ry="12" fill="#F2F2F7" />
+  <text x="950" y="372" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#8E8E93">心情</text>
+  
+  <!-- AI洞察卡片 -->
+  <rect x="920" y="420" width="260" height="150" rx="8" ry="8" fill="#FFFFFF" stroke="#E5E5EA" stroke-width="1" />
+  <text x="935" y="445" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="500" fill="#1D1D1F">AI洞察</text>
+  <text x="935" y="475" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="14" fill="#1D1D1F">你今天的心情积极向上，对户外活动</text>
+  <text x="935" y="495" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="14" fill="#1D1D1F">表现出浓厚兴趣。建议保持这种积极</text>
+  <text x="935" y="515" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="14" fill="#1D1D1F">的态度，多参与户外活动有助于身心</text>
+  <text x="935" y="535" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="14" fill="#1D1D1F">健康。</text>
+  
+  <!-- 关键词卡片 -->
+  <rect x="920" y="590" width="260" height="120" rx="8" ry="8" fill="#FFFFFF" stroke="#E5E5EA" stroke-width="1" />
+  <text x="935" y="615" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="500" fill="#1D1D1F">关键词</text>
+  <rect x="935" y="630" width="60" height="24" rx="12" ry="12" fill="#F2F2F7" />
+  <text x="945" y="647" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#8E8E93">公园</text>
+  <rect x="1005" y="630" width="60" height="24" rx="12" ry="12" fill="#F2F2F7" />
+  <text x="1015" y="647" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#8E8E93">锻炼</text>
+  <rect x="1075" y="630" width="60" height="24" rx="12" ry="12" fill="#F2F2F7" />
+  <text x="1085" y="647" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#8E8E93">天气</text>
+  <rect x="935" y="665" width="60" height="24" rx="12" ry="12" fill="#F2F2F7" />
+  <text x="945" y="682" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#8E8E93">心情</text>
+  <rect x="1005" y="665" width="60" height="24" rx="12" ry="12" fill="#F2F2F7" />
+  <text x="1015" y="682" font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#8E8E93">散步</text>
+</svg>

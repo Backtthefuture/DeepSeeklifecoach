@@ -2,7 +2,13 @@
 const AI = {
     // 火山方舟 API 配置
     config: {
-        endpoint: '/api/proxy',
+        // 根据环境自动选择API端点
+        get endpoint() {
+            // 检测当前环境
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            // 本地环境使用完整URL，云端环境使用相对路径
+            return isLocalhost ? 'http://localhost:8888/api/proxy' : '/api/proxy';
+        },
         apiKey: 'a411daf6-b1bf-49c3-a8a9-cdedf38b6173',
         model: 'deepseek-r1-250120'
     },
@@ -134,7 +140,7 @@ const AI = {
         try {
             const weeklyPrompt = `请根据以下对话记录生成本周总结报告：
 ${conversations.map(c => `
-日期：${new Date(c.id).toLocaleDateString()}
+日期：${new Date(parseInt(c.id)).toLocaleString('zh-CN')}
 情绪：${c.messages[0].emotion}
 内容：${c.messages[0].content}
 `).join('\n')}
@@ -159,17 +165,9 @@ ${conversations.map(c => `
             // 构建分析提示
             const prompt = `请分析以下对话记录，并按以下格式提供分析结果：
 
-# 主要话题
-- 列出所有对话中讨论的主要话题和关注点
-- 每个话题用一句话概括
-
 # 情绪变化
 - 分析情绪变化趋势
 - 指出情绪波动的关键点
-
-# 关键词
-- 提取最重要的关键词或短语
-- 解释每个关键词的重要性
 
 # AI 洞察
 - 基于对话内容提供建设性的建议
@@ -178,7 +176,7 @@ ${conversations.map(c => `
 对话记录：
 ${conversations.map(c => {
     const firstMsg = c.messages[0];
-    return `时间：${new Date(c.id).toLocaleString()}
+    return `时间：${new Date(parseInt(c.id)).toLocaleString('zh-CN')}
 情绪：${firstMsg.emotion || '未知'}
 内容：${firstMsg.content}
 ---`;

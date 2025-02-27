@@ -1,4 +1,4 @@
-# DeepSeek 生活教练 v0.5.1
+# DeepSeek 生活教练 v0.6.0
 
 基于 DeepSeek 大语言模型的生活教练应用，帮助你进行生活规划、情感疏导和个人成长。
 
@@ -14,6 +14,21 @@
 - ✨ Markdown 支持：AI 回复支持 Markdown 格式，显示更美观
 
 ## 最新更新
+
+### v0.7.0 (2025-02-28)
+- 🔄 优化API配置，自动适应本地和云端环境
+- 🌐 增强CORS配置，确保跨域请求正常工作
+- ✨ 添加情绪分析模块，提供更详细的情绪分析结果
+- 📊 更新分析面板，显示最后更新时间
+- 🐛 修复对话记录时间显示问题，确保时间格式正确
+- 📝 更新部署文档，提供更详细的Vercel部署指南
+
+### v0.6.0 (2025-02-27)
+- 🎨 全新苹果风格界面设计，提供更现代、简洁的用户体验
+- 📱 优化响应式布局，适配不同屏幕尺寸
+- ✨ 改进交互动画和过渡效果，提升用户体验流畅度
+- 🔄 重构弹窗和通知系统，使用更直观的交互方式
+- 🌓 优化色彩系统，提高界面对比度和可读性
 
 ### v0.5.1 (2025-02-27)
 - 🔄 优化删除对话体验，点击删除按钮后立即关闭弹窗
@@ -114,18 +129,54 @@ API 代理地址: http://localhost:3000/api/proxy
 
 在终端中按下 `Ctrl + C` 组合键可以停止服务器。
 
+## 部署说明
+
+### Vercel部署
+
+1. Fork 本项目到你的 GitHub 账号
+2. 在 [Vercel](https://vercel.com) 中注册并登录
+3. 点击"New Project"，然后导入你Fork的GitHub仓库
+4. 部署配置：
+   - Framework Preset: 选择 "Other"
+   - Build Command: 留空
+   - Output Directory: 留空
+   - Install Command: `npm install`
+   - Development Command: `npm start`
+5. 点击"Deploy"按钮开始部署
+6. 部署完成后，Vercel会提供一个域名（如 `your-app.vercel.app`）
+7. 访问该域名即可使用应用
+
+### 环境变量（可选）
+
+如果需要更改API密钥，可以在Vercel项目设置中添加以下环境变量：
+
+- `API_KEY`: 你的火山方舟API密钥
+
+### 自定义域名（可选）
+
+1. 在Vercel项目设置中，进入"Domains"选项卡
+2. 添加你的自定义域名
+3. 按照Vercel提供的说明配置DNS记录
+4. 等待DNS生效后，即可通过自定义域名访问应用
+
+### 本地与云端环境
+
+- 本地开发环境会自动使用 `http://localhost:8888/api/proxy` 作为API端点
+- Vercel部署环境会自动使用 `/api/proxy` 作为API端点，由vercel.json配置处理代理转发
+- 无需手动切换配置，应用会根据当前环境自动适应
+
+### 注意事项
+
+- 确保GitHub仓库中包含完整的代码，包括 `vercel.json` 配置文件
+- 如果API请求失败，请检查火山方舟API密钥是否有效
+- 部署后如需更新，只需推送新代码到GitHub仓库，Vercel会自动重新部署
+
 ## 技术实现
 
 - 前端：HTML5, CSS3, JavaScript
 - AI 模型：DeepSeek-R1
 - 数据存储：localStorage
 - 部署平台：Vercel
-
-## 部署说明
-
-1. Fork 本项目到你的 GitHub 账号
-2. 在 Vercel 中导入该项目
-3. 部署完成后即可使用
 
 ## 注意事项
 

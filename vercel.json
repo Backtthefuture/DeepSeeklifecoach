@@ -23,11 +23,5 @@
       "src": "/(.*)",
       "dest": "/$1"
     }
-  ],
-  "functions": {
-    "api/proxy.js": {
-      "memory": 1024,
-      "maxDuration": 60
-    }
-  }
+  ]
 }

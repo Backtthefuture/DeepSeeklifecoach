@@ -53,7 +53,8 @@ body {
 .container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh; /* 使用固定的视口高度 */
+  overflow: hidden; /* 防止内容溢出 */
 }
 
 /* ===== 顶部导航栏 ===== */
@@ -112,6 +113,7 @@ body {
   display: flex;
   flex: 1;
   overflow: hidden;
+  height: calc(100vh - 60px); /* 减去顶部导航栏的高度 */
 }
 
 /* ===== 侧边栏 ===== */
@@ -204,6 +206,10 @@ body {
   flex-direction: column;
   background-color: var(--apple-background);
   padding: var(--spacing-large);
+  width: 100%; /* 确保占满可用宽度 */
+  box-sizing: border-box; /* 确保padding不会增加元素宽度 */
+  height: 100%; /* 占满父容器高度 */
+  position: relative; /* 为绝对定位的子元素提供参考 */
 }
 
 .chat-container {
@@ -214,6 +220,11 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  width: 100%; /* 确保占满可用宽度 */
+  box-sizing: border-box; /* 确保padding不会增加元素宽度 */
+  height: 100%; /* 占满父容器高度 */
+  position: relative; /* 为绝对定位的子元素提供参考 */
+  padding-bottom: 160px; /* 为底部输入区域留出空间 */
 }
 
 .messages-container {
@@ -223,6 +234,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-medium);
+  height: 100%; /* 占满父容器高度 */
+  box-sizing: border-box; /* 确保padding不会增加元素宽度 */
 }
 
 .message {
@@ -257,9 +270,17 @@ body {
 
 /* ===== 输入区域 ===== */
 .input-area {
+  background: var(--apple-card);
   padding: var(--spacing-medium);
-  background-color: var(--apple-card);
   border-top: 1px solid var(--apple-border);
+  width: 100%; /* 确保占满可用宽度 */
+  box-sizing: border-box; /* 确保padding不会增加元素宽度 */
+  position: absolute; /* 绝对定位 */
+  bottom: 0; /* 固定在底部 */
+  left: 0; /* 左对齐 */
+  z-index: 10; /* 确保在其他元素之上 */
+  background-color: var(--apple-card); /* 确保背景色 */
+  border-radius: 0 0 var(--border-radius-medium) var(--border-radius-medium); /* 保持底部圆角 */
 }
 
 .emotion-selector {
@@ -298,10 +319,12 @@ body {
   display: flex;
   align-items: flex-end;
   gap: var(--spacing-medium);
+  width: 100%;
 }
 
 .input-container textarea {
   flex: 1;
+  width: 100%;
   border: 1px solid var(--apple-border);
   border-radius: var(--border-radius-medium);
   padding: var(--spacing-medium);
@@ -312,6 +335,7 @@ body {
   font-size: 15px;
   outline: none;
   transition: border-color 0.2s ease;
+  box-sizing: border-box;
 }
 
 .input-container textarea:focus {

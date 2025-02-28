@@ -15,90 +15,139 @@ const AI = {
 
     // 发送消息到火山方舟 API
     async sendMessage(message, conversation = null, onStream = null) {
-        try {
-            console.log('准备发送请求到 API:', {
-                endpoint: this.config.endpoint,
-                message: message
-            });
+        let retries = 3; // 最大重试次数
+        let lastError = null;
+        
+        while (retries > 0) {
+            try {
+                console.log('准备发送请求到 API:', {
+                    endpoint: this.config.endpoint,
+                    message: message
+                });
 
-            const requestBody = {
-                model: this.config.model,
-                messages: [{
-                    role: 'user',
-                    content: message
-                }],
-                temperature: 0.6,
-                max_tokens: 2000,
-                stream: Boolean(onStream)
-            };
+                const requestBody = {
+                    model: this.config.model,
+                    messages: [{
+                        role: 'user',
+                        content: message
+                    }],
+                    temperature: 0.6,
+                    max_tokens: 2000,
+                    stream: Boolean(onStream)
+                };
 
-            console.log('发送请求体:', JSON.stringify(requestBody, null, 2));
+                console.log('发送请求体:', JSON.stringify(requestBody, null, 2));
 
-            const response = await fetch(this.config.endpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.config.apiKey}`
-                },
-                body: JSON.stringify(requestBody)
-            });
+                const response = await fetch(this.config.endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.config.apiKey}`
+                    },
+                    body: JSON.stringify(requestBody)
+                });
 
-            console.log('收到响应状态:', response.status);
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('API错误响应:', errorText);
-                throw new Error(`API请求失败: ${response.status} - ${errorText}`);
-            }
+                console.log('收到响应状态:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API错误响应:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        errorText,
+                        endpoint: this.config.endpoint
+                    });
+                    throw new Error(`API请求失败: ${response.status} - ${errorText}`);
+                }
 
-            // 处理流式响应
-            if (requestBody.stream) {
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let fullContent = '';
-
-                while (true) {
-                    const {value, done} = await reader.read();
-                    if (done) break;
+                // 如果是流式响应
+                if (onStream && response.body) {
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = '';
                     
-                    const chunk = decoder.decode(value);
-                    const lines = chunk.split('\n').filter(line => line.trim() !== '');
-                    
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            const data = line.slice(6);
-                            if (data === '[DONE]') continue;
-                            
-                            try {
-                                const parsed = JSON.parse(data);
-                                const content = parsed.choices[0]?.delta?.content || '';
-                                if (content) {
-                                    fullContent += content;
-                                    if (onStream) onStream(content);
+                    // 处理流式响应
+                    const processStream = async () => {
+                        try {
+                            while (true) {
+                                const { done, value } = await reader.read();
+                                
+                                if (done) {
+                                    // 处理缓冲区中剩余的数据
+                                    if (buffer.trim()) {
+                                        try {
+                                            const lines = buffer.split('\n');
+                                            for (const line of lines) {
+                                                if (line.trim() && line.startsWith('data: ')) {
+                                                    const jsonStr = line.substring(6);
+                                                    if (jsonStr === '[DONE]') continue;
+                                                    const json = JSON.parse(jsonStr);
+                                                    const content = json.choices[0]?.delta?.content || '';
+                                                    if (content) onStream(content);
+                                                }
+                                            }
+                                        } catch (e) {
+                                            console.error('解析流式响应错误:', e, buffer);
+                                        }
+                                    }
+                                    break;
                                 }
-                            } catch (e) {
-                                console.error('解析流式数据错误:', e);
+                                
+                                // 将新数据添加到缓冲区
+                                const chunk = decoder.decode(value, { stream: true });
+                                buffer += chunk;
+                                
+                                // 处理缓冲区中的完整行
+                                const lines = buffer.split('\n');
+                                buffer = lines.pop() || ''; // 最后一行可能不完整，保留到缓冲区
+                                
+                                for (const line of lines) {
+                                    if (line.trim() && line.startsWith('data: ')) {
+                                        try {
+                                            const jsonStr = line.substring(6);
+                                            if (jsonStr === '[DONE]') continue;
+                                            const json = JSON.parse(jsonStr);
+                                            const content = json.choices[0]?.delta?.content || '';
+                                            if (content) onStream(content);
+                                        } catch (e) {
+                                            console.error('解析流式响应错误:', e, line);
+                                        }
+                                    }
+                                }
                             }
+                        } catch (error) {
+                            console.error('流式处理错误:', error);
+                            throw error;
                         }
-                    }
+                    };
+                    
+                    await processStream();
+                    return 'STREAM_PROCESSED';
+                } else {
+                    // 非流式响应
+                    const data = await response.json();
+                    return data.choices[0].message.content;
+                }
+            } catch (error) {
+                console.error('API请求错误:', error, '剩余重试次数:', retries - 1);
+                lastError = error;
+                
+                // 如果是网络错误且还有重试次数，则重试
+                if ((error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) && retries > 1) {
+                    retries--;
+                    // 等待一段时间后重试，使用指数退避策略
+                    const waitTime = Math.pow(2, 3 - retries) * 1000;
+                    console.log(`等待 ${waitTime}ms 后重试...`);
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                    continue;
                 }
                 
-                return fullContent;
+                // 没有重试次数或非网络错误，抛出异常
+                throw lastError;
             }
-
-            // 处理非流式响应
-            const data = await response.json();
-            console.log('API响应数据:', data);
-
-            if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-                console.error('API响应格式错误:', data);
-                throw new Error('API响应格式错误');
-            }
-
-            return data.choices[0].message.content;
-        } catch (error) {
-            console.error('API调用错误:', error);
-            throw new Error(`API调用失败: ${error.message}`);
+            
+            // 如果成功，跳出循环
+            break;
         }
     },
 

@@ -129,6 +129,38 @@ API 代理地址: http://localhost:3000/api/proxy
 
 在终端中按下 `Ctrl + C` 组合键可以停止服务器。
 
+## API通信配置
+
+应用支持在本地开发环境和Vercel部署环境中与火山方舟API进行通信。
+
+### 本地开发环境
+
+在本地开发环境中，API请求通过本地Express服务器代理：
+
+1. 启动本地服务器：
+   ```bash
+   npm start
+   ```
+
+2. 服务器会在 http://localhost:8888 启动，API代理地址为 http://localhost:8888/api/proxy
+
+3. 前端代码会自动检测当前环境，并使用正确的API端点
+
+### Vercel部署环境
+
+在Vercel部署环境中，API请求通过Serverless Function处理：
+
+1. `/api/proxy.js` Serverless Function负责处理API请求
+2. `vercel.json`中配置了API路由，将请求正确路由到Serverless Function
+
+### 错误处理与重试机制
+
+应用内置了错误处理和重试机制：
+
+1. 网络错误时自动重试，最多重试3次
+2. 使用指数退避策略，避免频繁请求
+3. 详细的错误日志，便于问题排查
+
 ## 部署说明
 
 ### Vercel部署

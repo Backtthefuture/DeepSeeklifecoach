@@ -1,5 +1,4 @@
 // Serverless Function 用于处理API请求
-const https = require('https');
 const fetch = require('node-fetch');
 
 module.exports = async (req, res) => {
@@ -23,15 +22,23 @@ module.exports = async (req, res) => {
     const requestBody = req.body;
     const apiKey = req.headers.authorization?.split(' ')[1] || 'a411daf6-b1bf-49c3-a8a9-cdedf38b6173';
 
-    // 使用node-fetch发送请求
+    // 设置超时控制
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒超时，留2秒缓冲
+    
+    // 使用node-fetch发送请求，添加超时控制
     const response = await fetch('https://ark.cn-beijing.volces.com/api/v3/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
+      signal: controller.signal
     });
+    
+    // 清除超时定时器
+    clearTimeout(timeoutId);
     
     // 获取响应数据
     const data = await response.text();
@@ -43,6 +50,15 @@ module.exports = async (req, res) => {
     return res.send(data);
   } catch (error) {
     console.error('API代理错误:', error);
+    
+    // 区分超时错误和其他错误
+    if (error.name === 'AbortError') {
+      return res.status(504).json({ 
+        error: '请求超时，请稍后再试',
+        details: '火山方舟API响应时间过长'
+      });
+    }
+    
     // 返回错误信息
     return res.status(500).json({ 
       error: error.message,

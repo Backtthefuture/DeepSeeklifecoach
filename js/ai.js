@@ -10,13 +10,15 @@ const AI = {
             return isLocalhost ? 'http://localhost:8888/api/proxy' : '/api/proxy';
         },
         apiKey: 'a411daf6-b1bf-49c3-a8a9-cdedf38b6173',
-        model: 'deepseek-r1-250120'
+        model: 'deepseek-r1-250120',
+        timeout: 30000 // 客户端超时设置为30秒
     },
 
     // 发送消息到火山方舟 API
     async sendMessage(message, conversation = null, onStream = null) {
         let retries = 3; // 最大重试次数
         let lastError = null;
+        let retryDelay = 1000; // 初始重试延迟1秒
         
         while (retries > 0) {
             try {
@@ -38,15 +40,23 @@ const AI = {
 
                 console.log('发送请求体:', JSON.stringify(requestBody, null, 2));
 
+                // 创建AbortController用于超时控制
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+
                 const response = await fetch(this.config.endpoint, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${this.config.apiKey}`
                     },
-                    body: JSON.stringify(requestBody)
+                    body: JSON.stringify(requestBody),
+                    signal: controller.signal
                 });
 
+                // 清除超时定时器
+                clearTimeout(timeoutId);
+                
                 console.log('收到响应状态:', response.status);
                 
                 if (!response.ok) {
@@ -57,6 +67,13 @@ const AI = {
                         errorText,
                         endpoint: this.config.endpoint
                     });
+                    
+                    // 如果是504错误，可能是超时，尝试重试
+                    if (response.status === 504 && retries > 1) {
+                        lastError = new Error(`API请求超时: ${response.status} - 正在重试...`);
+                        throw lastError; // 抛出错误以触发重试
+                    }
+                    
                     throw new Error(`API请求失败: ${response.status} - ${errorText}`);
                 }
 
@@ -80,75 +97,97 @@ const AI = {
                                             for (const line of lines) {
                                                 if (line.trim() && line.startsWith('data: ')) {
                                                     const jsonStr = line.substring(6);
-                                                    if (jsonStr === '[DONE]') continue;
-                                                    const json = JSON.parse(jsonStr);
-                                                    const content = json.choices[0]?.delta?.content || '';
-                                                    if (content) onStream(content);
+                                                    if (jsonStr.trim() === '[DONE]') {
+                                                        // 流结束
+                                                        onStream({ done: true });
+                                                    } else {
+                                                        try {
+                                                            const json = JSON.parse(jsonStr);
+                                                            onStream(json);
+                                                        } catch (e) {
+                                                            console.error('解析JSON失败:', e, jsonStr);
+                                                        }
+                                                    }
                                                 }
                                             }
                                         } catch (e) {
-                                            console.error('解析流式响应错误:', e, buffer);
+                                            console.error('处理剩余数据失败:', e);
                                         }
                                     }
                                     break;
                                 }
                                 
                                 // 将新数据添加到缓冲区
-                                const chunk = decoder.decode(value, { stream: true });
-                                buffer += chunk;
+                                buffer += decoder.decode(value, { stream: true });
                                 
                                 // 处理缓冲区中的完整行
                                 const lines = buffer.split('\n');
-                                buffer = lines.pop() || ''; // 最后一行可能不完整，保留到缓冲区
+                                buffer = lines.pop() || ''; // 最后一行可能不完整，保留在缓冲区
                                 
                                 for (const line of lines) {
                                     if (line.trim() && line.startsWith('data: ')) {
-                                        try {
-                                            const jsonStr = line.substring(6);
-                                            if (jsonStr === '[DONE]') continue;
-                                            const json = JSON.parse(jsonStr);
-                                            const content = json.choices[0]?.delta?.content || '';
-                                            if (content) onStream(content);
-                                        } catch (e) {
-                                            console.error('解析流式响应错误:', e, line);
+                                        const jsonStr = line.substring(6);
+                                        if (jsonStr.trim() === '[DONE]') {
+                                            // 流结束
+                                            onStream({ done: true });
+                                        } else {
+                                            try {
+                                                const json = JSON.parse(jsonStr);
+                                                onStream(json);
+                                            } catch (e) {
+                                                console.error('解析JSON失败:', e, jsonStr);
+                                            }
                                         }
                                     }
                                 }
                             }
                         } catch (error) {
-                            console.error('流式处理错误:', error);
-                            throw error;
+                            console.error('流处理错误:', error);
+                            onStream({ error: error.message });
                         }
                     };
                     
                     await processStream();
-                    return 'STREAM_PROCESSED';
+                    return null; // 流式响应不返回内容
                 } else {
                     // 非流式响应
                     const data = await response.json();
+                    console.log('收到API响应:', data);
+                    
+                    // 存储对话记录
+                    if (conversation) {
+                        conversation.push({
+                            role: 'user',
+                            content: message
+                        });
+                        conversation.push({
+                            role: 'assistant',
+                            content: data.choices[0].message.content
+                        });
+                    }
+                    
                     return data.choices[0].message.content;
                 }
             } catch (error) {
-                console.error('API请求错误:', error, '剩余重试次数:', retries - 1);
                 lastError = error;
+                console.error(`API请求错误(剩余重试次数: ${retries - 1}):`, error);
                 
-                // 如果是网络错误且还有重试次数，则重试
-                if ((error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) && retries > 1) {
+                // 如果是AbortError（超时）或网络错误，尝试重试
+                if ((error.name === 'AbortError' || error.message.includes('Failed to fetch') || error.message.includes('timeout') || error.message.includes('504')) && retries > 1) {
                     retries--;
-                    // 等待一段时间后重试，使用指数退避策略
-                    const waitTime = Math.pow(2, 3 - retries) * 1000;
-                    console.log(`等待 ${waitTime}ms 后重试...`);
-                    await new Promise(resolve => setTimeout(resolve, waitTime));
-                    continue;
+                    // 使用指数退避策略
+                    await new Promise(resolve => setTimeout(resolve, retryDelay));
+                    retryDelay *= 2; // 每次重试延迟时间翻倍
+                    console.log(`重试请求，延迟: ${retryDelay}ms`);
+                } else {
+                    // 其他错误或已达到最大重试次数
+                    break;
                 }
-                
-                // 没有重试次数或非网络错误，抛出异常
-                throw lastError;
             }
-            
-            // 如果成功，跳出循环
-            break;
         }
+        
+        // 所有重试都失败
+        throw lastError || new Error('API请求失败，请稍后再试');
     },
 
     // 生成系统提示词

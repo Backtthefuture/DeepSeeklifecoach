@@ -11,20 +11,31 @@ const AI = {
         },
         apiKey: 'a411daf6-b1bf-49c3-a8a9-cdedf38b6173',
         model: 'deepseek-r1-250120',
-        timeout: 30000 // 客户端超时设置为30秒
     },
 
     // 发送消息到火山方舟 API
     async sendMessage(message, conversation = null, onStream = null) {
-        let retries = 3; // 最大重试次数
+        let retries = 5; // 增加最大重试次数
         let lastError = null;
         let retryDelay = 1000; // 初始重试延迟1秒
+        
+        // 判断是否是长文本或周报分析请求
+        const isLongRequest = message.length > 500 || 
+                             message.includes('周报') || 
+                             message.includes('分析') ||
+                             message.includes('洞察');
+        
+        // 对于长文本请求，在UI上显示提示
+        if (isLongRequest && !onStream) {
+            console.log('这是长文本请求，可能需要较长时间处理...');
+            // 这里可以添加UI提示，告知用户请求可能需要较长时间
+        }
         
         while (retries > 0) {
             try {
                 console.log('准备发送请求到 API:', {
                     endpoint: this.config.endpoint,
-                    message: message
+                    message: message.substring(0, 100) + (message.length > 100 ? '...' : '') // 只记录前100个字符
                 });
 
                 const requestBody = {
@@ -38,24 +49,25 @@ const AI = {
                     stream: Boolean(onStream)
                 };
 
-                console.log('发送请求体:', JSON.stringify(requestBody, null, 2));
+                console.log('发送请求体:', JSON.stringify({
+                    ...requestBody,
+                    messages: [{
+                        role: 'user',
+                        content: requestBody.messages[0].content.substring(0, 100) + 
+                                (requestBody.messages[0].content.length > 100 ? '...' : '')
+                    }]
+                }, null, 2));
 
-                // 创建AbortController用于超时控制
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
-
+                // 不使用AbortController和超时控制
                 const response = await fetch(this.config.endpoint, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${this.config.apiKey}`
                     },
-                    body: JSON.stringify(requestBody),
-                    signal: controller.signal
+                    body: JSON.stringify(requestBody)
+                    // 移除signal和超时控制
                 });
-
-                // 清除超时定时器
-                clearTimeout(timeoutId);
                 
                 console.log('收到响应状态:', response.status);
                 
@@ -68,9 +80,9 @@ const AI = {
                         endpoint: this.config.endpoint
                     });
                     
-                    // 如果是504错误，可能是超时，尝试重试
-                    if (response.status === 504 && retries > 1) {
-                        lastError = new Error(`API请求超时: ${response.status} - 正在重试...`);
+                    // 对于所有错误，如果还有重试次数，都尝试重试
+                    if (retries > 1) {
+                        lastError = new Error(`API请求失败: ${response.status} - 正在重试(剩余${retries-1}次)...`);
                         throw lastError; // 抛出错误以触发重试
                     }
                     
@@ -143,51 +155,33 @@ const AI = {
                             }
                         } catch (error) {
                             console.error('流处理错误:', error);
-                            onStream({ error: error.message });
+                            onStream(null, error);
                         }
                     };
                     
-                    await processStream();
-                    return null; // 流式响应不返回内容
+                    processStream();
+                    return null; // 流式响应不返回完整结果
                 } else {
                     // 非流式响应
                     const data = await response.json();
-                    console.log('收到API响应:', data);
-                    
-                    // 存储对话记录
-                    if (conversation) {
-                        conversation.push({
-                            role: 'user',
-                            content: message
-                        });
-                        conversation.push({
-                            role: 'assistant',
-                            content: data.choices[0].message.content
-                        });
-                    }
-                    
+                    console.log('API响应数据:', data);
                     return data.choices[0].message.content;
                 }
             } catch (error) {
-                lastError = error;
-                console.error(`API请求错误(剩余重试次数: ${retries - 1}):`, error);
+                console.error(`尝试 ${6-retries}/5 失败:`, error);
+                retries--;
                 
-                // 如果是AbortError（超时）或网络错误，尝试重试
-                if ((error.name === 'AbortError' || error.message.includes('Failed to fetch') || error.message.includes('timeout') || error.message.includes('504')) && retries > 1) {
-                    retries--;
-                    // 使用指数退避策略
+                if (retries > 0) {
+                    // 使用指数退避策略增加重试延迟
+                    console.log(`等待 ${retryDelay}ms 后重试...`);
                     await new Promise(resolve => setTimeout(resolve, retryDelay));
-                    retryDelay *= 2; // 每次重试延迟时间翻倍
-                    console.log(`重试请求，延迟: ${retryDelay}ms`);
+                    retryDelay *= 2; // 指数增长重试延迟
                 } else {
-                    // 其他错误或已达到最大重试次数
-                    break;
+                    console.error('所有重试都失败:', error);
+                    throw lastError || error;
                 }
             }
         }
-        
-        // 所有重试都失败
-        throw lastError || new Error('API请求失败，请稍后再试');
     },
 
     // 生成系统提示词

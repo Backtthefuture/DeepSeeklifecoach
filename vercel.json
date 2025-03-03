@@ -2,6 +2,10 @@
   "version": 2,
   "builds": [
     {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "**/*",
       "use": "@vercel/static"
     }
@@ -9,16 +13,20 @@
   "routes": [
     {
       "src": "/api/proxy",
-      "dest": "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
-      }
+      "dest": "/api/proxy.js"
+    },
+    {
+      "src": "/api/env",
+      "dest": "/api/env.js"
     },
     {
       "src": "/(.*)",
       "dest": "/$1"
     }
-  ]
+  ],
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 120
+    }
+  }
 }

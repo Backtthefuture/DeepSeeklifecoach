@@ -15,14 +15,17 @@ app.use(express.static(path.join(__dirname)));
 
 // 代理 API 请求到火山方舟
 app.use('/api/proxy', createProxyMiddleware({
-  target: 'https://ark.cn-beijing.volces.com',
+  target: process.env.VOLCES_API_URL || 'https://ark.cn-beijing.volces.com',
   changeOrigin: true,
   pathRewrite: {
-    '^/api/proxy': '/api/v3/chat/completions'
+    '^/api/proxy': process.env.VOLCES_PATH || '/api/v3/chat/completions'
   },
   onProxyRes: function(proxyRes, req, res) {
     proxyRes.headers['Access-Control-Allow-Origin'] = '*';
-  }
+  },
+  // 增加超时设置为 120000 毫秒（2分钟）
+  timeout: 120000,
+  proxyTimeout: 120000
 }));
 
 // 启动服务器

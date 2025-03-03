@@ -3,8 +3,8 @@ const AI = {
     // 火山方舟 API 配置
     config: {
         endpoint: '/api/proxy',
-        apiKey: 'a411daf6-b1bf-49c3-a8a9-cdedf38b6173',
-        model: 'deepseek-r1-250120'
+        apiKey: window.ENV_VOLCES_API_KEY || 'a411daf6-b1bf-49c3-a8a9-cdedf38b6173',
+        model: window.ENV_VOLCES_MODEL || 'deepseek-r1-250120'
     },
 
     // 发送消息到火山方舟 API

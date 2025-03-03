@@ -15,6 +15,12 @@
 
 ## 最新更新
 
+### v0.5.2 (2025-03-03)
+- 🚀 优化 API 请求处理，增加超时时间至 120 秒
+- 🔧 改进 Vercel 部署配置，支持长时间运行的 Serverless 函数
+- 🔒 增强 API 密钥管理，支持通过环境变量配置
+- 📝 更新部署文档，添加环境变量设置说明
+
 ### v0.5.1 (2025-02-27)
 - 🔄 优化删除对话体验，点击删除按钮后立即关闭弹窗
 - 🚀 提升用户界面响应速度，改善整体交互体验
@@ -123,14 +129,51 @@ API 代理地址: http://localhost:3000/api/proxy
 
 ## 部署说明
 
+### Vercel 部署步骤
+
 1. Fork 本项目到你的 GitHub 账号
 2. 在 Vercel 中导入该项目
-3. 部署完成后即可使用
+3. 配置以下环境变量（可选）：
+   - `VOLCES_API_KEY`: 火山方舟 API 密钥（如不设置将使用默认密钥）
+   - `VOLCES_MODEL`: DeepSeek 模型名称，默认为 'deepseek-r1-250120'。
+   - `VOLCES_HOSTNAME`: 火山方舟 API 主机名，默认为 'ark.cn-beijing.volces.com'。
+   - `VOLCES_PATH`: 火山方舟 API 路径，默认为 '/api/v3/chat/completions'。
+   - `VOLCES_API_URL`: 完整的火山方舟 API URL，默认为 'https://ark.cn-beijing.volces.com'。
+4. 点击部署按钮
+5. 部署完成后即可使用
+
+### 环境变量说明
+
+| 变量名 | 必填 | 说明 |
+|--------|------|------|
+| VOLCES_API_KEY | 否 | 火山方舟 API 密钥，用于访问 DeepSeek 模型。如不设置，将使用代码中的默认密钥。 |
+| VOLCES_MODEL | 否 | DeepSeek 模型名称，默认为 'deepseek-r1-250120'。 |
+| VOLCES_HOSTNAME | 否 | 火山方舟 API 主机名，默认为 'ark.cn-beijing.volces.com'。 |
+| VOLCES_PATH | 否 | 火山方舟 API 路径，默认为 '/api/v3/chat/completions'。 |
+| VOLCES_API_URL | 否 | 完整的火山方舟 API URL，默认为 'https://ark.cn-beijing.volces.com'。 |
+
+### Vercel 环境变量设置步骤
+
+1. 登录 Vercel 控制台，进入你的项目
+2. 点击 "Settings" 选项卡
+3. 在左侧菜单中选择 "Environment Variables"
+4. 添加上述环境变量（至少需要设置 `VOLCES_API_KEY`）
+5. 点击 "Save" 保存设置
+6. 重新部署你的项目以应用新的环境变量
+
+### 超时配置说明
+
+本项目已在 `vercel.json` 中配置了 Serverless 函数的最大运行时间为 120 秒，以处理复杂的 AI 请求。这个配置适用于 Vercel 的付费计划。如果你使用的是免费计划，可能需要调整此值，因为免费计划的函数执行时间限制为 10 秒。
+
+对于免费计划，你可以：
+1. 将 `vercel.json` 中的 `maxDuration` 值改为 10（秒）
+2. 或者考虑升级到付费计划以获得更长的执行时间
 
 ## 注意事项
 
 - 所有数据都存储在浏览器本地，清除浏览器数据会导致对话历史丢失
 - 时间戳格式统一使用10位秒级时间戳，确保日期显示的准确性
+- 对于复杂的 AI 请求（如分析长文本或生成周报），响应时间可能较长，请耐心等待
 
 ## 开发计划
 

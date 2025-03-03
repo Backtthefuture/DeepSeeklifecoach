@@ -30,7 +30,9 @@ module.exports = async (req, res) => {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
-      }
+      },
+      // 设置足够大的超时时间：120秒（2分钟）
+      timeout: 120000
     };
     
     // 创建请求并直接流式传输响应
@@ -56,10 +58,18 @@ module.exports = async (req, res) => {
       });
     });
     
-    // 设置请求超时处理（仅用于日志记录，不会中断请求）
+    // 设置请求超时处理
     proxyReq.on('timeout', () => {
       console.warn('请求超时警告 - 但继续等待响应');
       // 注意：我们不终止请求，只记录警告
+      // 如果需要在客户端显示超时警告，可以发送一个特殊的状态码
+      // 但在这里我们选择继续等待，因为我们已经设置了很长的超时时间
+    });
+    
+    // 显式设置请求超时
+    proxyReq.setTimeout(120000, () => {
+      console.warn('请求已达到120秒超时限制，但仍在等待响应');
+      // 我们不终止请求，让它继续运行直到完成或失败
     });
     
     // 发送请求体

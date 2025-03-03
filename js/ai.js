@@ -11,6 +11,8 @@ const AI = {
         },
         apiKey: 'a411daf6-b1bf-49c3-a8a9-cdedf38b6173',
         model: 'deepseek-r1-250120',
+        // 添加超时设置，设为120秒
+        timeout: 120000
     },
 
     // 发送消息到火山方舟 API
@@ -58,16 +60,27 @@ const AI = {
                     }]
                 }, null, 2));
 
-                // 不使用AbortController和超时控制
+                // 使用AbortController和超时控制
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => {
+                    console.warn(`请求超时（${this.config.timeout}ms）但继续等待响应...`);
+                    // 注意：我们不中止请求，只记录警告
+                    // 如果需要中止请求，可以取消注释下面的代码
+                    // controller.abort();
+                }, this.config.timeout);
+
                 const response = await fetch(this.config.endpoint, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${this.config.apiKey}`
                     },
-                    body: JSON.stringify(requestBody)
-                    // 移除signal和超时控制
+                    body: JSON.stringify(requestBody),
+                    signal: controller.signal
                 });
+                
+                // 清除超时计时器
+                clearTimeout(timeoutId);
                 
                 console.log('收到响应状态:', response.status);
                 

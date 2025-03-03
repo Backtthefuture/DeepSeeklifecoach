@@ -216,17 +216,9 @@ const App = {
     appendMessage(message) {
         const container = document.getElementById('currentConversation');
         const div = document.createElement('div');
-        div.className = `message ${message.type}-message`;
+        div.className = `message ${message.type === 'user' ? 'user' : 'ai'}`;
 
-        const header = document.createElement('div');
-        header.className = 'message-header';
-        header.innerHTML = `
-            <span>${message.type === 'user' ? '你' : 'AI教练'}</span>
-            <span>${new Date(message.timestamp).toLocaleTimeString()}</span>
-            ${message.emotion ? `<span>情绪: ${message.emotion}</span>` : ''}
-            ${message.type === 'user' ? '<span class="edit-icon">✎</span>' : ''}
-        `;
-
+        // 创建消息内容
         const content = document.createElement('div');
         content.className = 'message-content';
         
@@ -246,14 +238,46 @@ const App = {
                 .replace(/\n/g, '<br>');
             content.innerHTML = formattedContent;
         }
-
-        div.appendChild(header);
+        
+        // 添加时间和情绪标签
+        const timeElement = document.createElement('div');
+        timeElement.className = 'message-time';
+        
+        let timeText = new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        if (message.emotion && message.type === 'user') {
+            const emotionIcons = {
+                'happy': '😊',
+                'sad': '😔',
+                'angry': '😡',
+                'anxious': '😨',
+                'neutral': '😐'
+            };
+            const emotionIcon = emotionIcons[message.emotion] || '';
+            timeText += ` · ${emotionIcon} ${message.emotion}`;
+        }
+        
+        timeElement.textContent = timeText;
+        
+        // 添加编辑按钮（仅用户消息）
+        if (message.type === 'user') {
+            const editButton = document.createElement('button');
+            editButton.className = 'edit-button';
+            editButton.innerHTML = `
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            `;
+            timeElement.appendChild(editButton);
+        }
+        
         div.appendChild(content);
+        div.appendChild(timeElement);
         container.appendChild(div);
 
         // 为用户消息添加编辑功能
         if (message.type === 'user') {
-            const editIcon = header.querySelector('.edit-icon');
+            const editIcon = timeElement.querySelector('.edit-button');
             const messageIndex = container.children.length - 1;
             editIcon.addEventListener('click', () => {
                 this.enterEditMode(div, messageIndex);
@@ -373,18 +397,17 @@ const App = {
     showThinkingMessage() {
         const container = document.getElementById('currentConversation');
         const div = document.createElement('div');
-        div.className = 'message assistant-message thinking-message';
+        div.className = 'thinking';
 
-        const header = document.createElement('div');
-        header.className = 'message-header';
-        header.innerHTML = `<span>AI教练</span>`;
-
-        const content = document.createElement('div');
-        content.className = 'message-content';
-        content.innerHTML = `思考中<span class="thinking-dots"></span>`;
-
-        div.appendChild(header);
-        div.appendChild(content);
+        div.innerHTML = `
+            <div class="avatar">AI</div>
+            <div class="dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        `;
+        
         container.appendChild(div);
 
         // 滚动到底部
@@ -396,7 +419,7 @@ const App = {
     // 移除思考状态消息
     removeThinkingMessage() {
         const container = document.getElementById('currentConversation');
-        const thinkingMessage = container.querySelector('.thinking-message');
+        const thinkingMessage = container.querySelector('.thinking');
         if (thinkingMessage) {
             container.removeChild(thinkingMessage);
         }
@@ -543,8 +566,10 @@ const App = {
     // 更新分析部分
     updateInsightSection(elementId, content, defaultText) {
         const element = document.getElementById(elementId);
+        if (!element) return; // 如果元素不存在，直接返回
+        
         if (!content || content.trim().length === 0) {
-            element.innerHTML = `<div class="empty-message">${defaultText}</div>`;
+            element.innerHTML = `<div class="empty-state">${defaultText}</div>`;
             return;
         }
         
@@ -563,19 +588,24 @@ const App = {
             [this.UIState.ERROR]: `<div class="error-message">${message}</div>`
         };
 
-        ['topicInsight', 'emotionInsight', 'keywordsInsight', 'aiInsight'].forEach(id => {
+        // 更新各个分析面板的状态
+        ['emotionInsight', 'aiInsight'].forEach(id => {
             const element = document.getElementById(id);
-            // 仅当状态为加载中或更新中时，或者当前内容包含loading时才更新
-            if (state === this.UIState.LOADING || state === this.UIState.UPDATING || 
-                element.innerHTML.includes('loading')) {
-                if (state === this.UIState.IDLE) {
-                    // 如果是空闲状态，但内容是空的，显示等待分析消息
-                    if (element.innerHTML.trim() === '') {
-                        element.innerHTML = '<div class="waiting-message">点击"开始分析"按钮开始分析</div>';
-                    }
-                } else {
-                    element.innerHTML = statusIndicators[state] || '';
-                }
+            if (!element) return; // 如果元素不存在，跳过
+
+            switch (state) {
+                case 'loading':
+                    element.innerHTML = `<div class="loading-spinner"></div>`;
+                    break;
+                case 'error':
+                    element.innerHTML = `<div class="error-message">${message}</div>`;
+                    break;
+                case 'empty':
+                    element.innerHTML = `<div class="empty-state">暂无数据</div>`;
+                    break;
+                case 'ready':
+                    // ready状态不做特殊处理，由各自的更新函数处理
+                    break;
             }
         });
 
@@ -645,25 +675,37 @@ const App = {
 
             // 更新各个部分
             const sectionConfig = {
-                'topicInsight': ['topics', '暂无主题分析'],
                 'emotionInsight': ['emotions', '暂无情绪分析'],
-                'keywordsInsight': ['keywords', '暂无关键词'],
                 'aiInsight': ['insights', '暂无AI洞察']
             };
 
             Object.entries(sectionConfig).forEach(([elementId, [sectionKey, defaultText]]) => {
+                const element = document.getElementById(elementId);
+                if (!element) return; // 如果元素不存在，跳过
+                
                 const content = sections[sectionKey];
                 if (!content || content === '解析错误') {
-                    document.getElementById(elementId).innerHTML = 
-                        `<div class="error-message">${defaultText}</div>`;
+                    element.innerHTML = `<div class="error-message">${defaultText}</div>`;
                 } else {
                     this.updateInsightSection(elementId, content, defaultText);
                 }
             });
 
+            // 更新情绪图表
+            this.updateEmotionChart(sections.emotions);
+
             // 更新最后更新时间
-            document.getElementById('lastUpdateTime').textContent = 
-                new Date().toLocaleString();
+            const lastUpdateTime = document.getElementById('lastUpdateTime');
+            if (lastUpdateTime) {
+                const now = new Date();
+                lastUpdateTime.textContent = now.toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
 
             // 恢复空闲状态
             this.updateUIState(this.UIState.IDLE);
@@ -689,134 +731,136 @@ const App = {
     // 显示无数据消息
     showNoDataMessage() {
         const message = `
-            <div style="text-align: center; color: #666; padding: 20px;">
+            <div class="empty-state">
                 <p>没有对话记录</p>
                 <p>开始新的对话，分析将自动更新</p>
             </div>
         `;
         
-        ['topicInsight', 'emotionInsight', 'keywordsInsight', 'aiInsight'].forEach(id => {
-            document.getElementById(id).innerHTML = message;
+        // 更新分析面板
+        ['emotionInsight', 'aiInsight'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.innerHTML = message;
+            }
         });
         
-        document.getElementById('lastUpdateTime').textContent = new Date().toLocaleString();
+        // 更新情绪图表，显示空状态
+        try {
+            const emotionChartCanvas = document.getElementById('emotionChart');
+            if (!emotionChartCanvas) return;
+            
+            // 确保销毁所有已存在的图表实例
+            if (window.chartInstances && window.chartInstances.emotionChart) {
+                window.chartInstances.emotionChart.destroy();
+                window.chartInstances.emotionChart = null;
+            }
+            
+            const ctx = emotionChartCanvas.getContext('2d');
+            
+            // 创建空的图表
+            const newChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '情绪变化',
+                        data: [],
+                        borderColor: '#ccc',
+                        backgroundColor: 'rgba(200, 200, 200, 0.1)',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // 保存图表实例到全局对象
+            if (!window.chartInstances) window.chartInstances = {};
+            window.chartInstances.emotionChart = newChart;
+            
+            // 更新最后更新时间
+            const lastUpdateTime = document.getElementById('lastUpdateTime');
+            if (lastUpdateTime) {
+                lastUpdateTime.textContent = '-';
+            }
+        } catch (error) {
+            console.error('创建空图表失败:', error);
+        }
     },
 
     // 显示错误消息
     showErrorMessage(error) {
         const message = `
-            <div style="text-align: center; color: #dc3545; padding: 20px;">
+            <div class="empty-state error">
                 <p>分析更新失败</p>
                 <p>${error}</p>
                 <p>请稍后重试</p>
             </div>
         `;
         
-        ['topicInsight', 'emotionInsight', 'keywordsInsight', 'aiInsight'].forEach(id => {
-            document.getElementById(id).innerHTML = message;
+        // 更新分析面板
+        ['emotionInsight', 'aiInsight'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.innerHTML = message;
+            }
         });
-    },
-
-    // 渲染对话列表
-    renderConversationList() {
-        const conversations = Storage.getConversations();
-        const listHtml = conversations.map(conv => {
-            const date = this.formatDate(conv.id);
-            const preview = conv.messages[0]?.content.substring(0, 30) + '...' || '';
-            const activeClass = conv.id === this.currentConversationId ? 'active' : '';
-            
-            return `
-                <div class="conversation-item ${activeClass}" data-id="${conv.id}">
-                    <div class="conversation-content">
-                        <div class="date">${date}</div>
-                        <div class="preview">${preview}</div>
-                    </div>
-                    <span class="delete-icon" title="删除对话">×</span>
-                </div>
-            `;
-        }).join('');
         
-        document.getElementById('conversationList').innerHTML = listHtml;
-        
-        // 添加事件监听
-        document.querySelectorAll('.conversation-item').forEach(item => {
-            const id = item.dataset.id;
+        // 更新情绪图表，显示错误状态
+        try {
+            const emotionChartCanvas = document.getElementById('emotionChart');
+            if (!emotionChartCanvas) return;
             
-            // 对话点击事件
-            item.addEventListener('click', (e) => {
-                if (!e.target.classList.contains('delete-icon')) {
-                    this.loadConversation(id);
+            // 确保销毁所有已存在的图表实例
+            if (window.chartInstances && window.chartInstances.emotionChart) {
+                window.chartInstances.emotionChart.destroy();
+                window.chartInstances.emotionChart = null;
+            }
+            
+            const ctx = emotionChartCanvas.getContext('2d');
+            
+            // 创建错误状态图表
+            const newChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['错误'],
+                    datasets: [{
+                        label: '情绪变化',
+                        data: [50],
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
                 }
             });
             
-            // 删除图标点击事件
-            const deleteIcon = item.querySelector('.delete-icon');
-            deleteIcon.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.showDeleteConfirm(id);
-            });
-        });
-    },
-
-    // 显示删除确认对话框
-    showDeleteConfirm(id) {
-        const overlay = document.createElement('div');
-        overlay.className = 'dialog-overlay';
-        
-        const dialog = document.createElement('div');
-        dialog.className = 'confirm-dialog';
-        dialog.innerHTML = `
-            <h3>删除对话</h3>
-            <p>确定要删除这条对话吗？此操作不可恢复。</p>
-            <div class="dialog-buttons">
-                <button class="dialog-btn cancel-btn">取消</button>
-                <button class="dialog-btn confirm-btn">删除</button>
-            </div>
-        `;
-        
-        document.body.appendChild(overlay);
-        document.body.appendChild(dialog);
-        
-        const closeDialog = () => {
-            overlay.remove();
-            dialog.remove();
-        };
-        
-        // 绑定按钮事件
-        const cancelBtn = dialog.querySelector('.cancel-btn');
-        const confirmBtn = dialog.querySelector('.confirm-btn');
-        
-        cancelBtn.addEventListener('click', closeDialog);
-        
-        confirmBtn.addEventListener('click', async () => {
-            closeDialog(); // 先关闭弹窗
-            await this.deleteConversation(id); // 然后异步删除对话
-        });
-    },
-
-    // 显示提示消息
-    showToast(message, duration = 2000) {
-        // 移除已存在的toast
-        const existingToast = document.querySelector('.toast');
-        if (existingToast) {
-            existingToast.remove();
+            // 保存图表实例到全局对象
+            if (!window.chartInstances) window.chartInstances = {};
+            window.chartInstances.emotionChart = newChart;
+            
+            // 更新最后更新时间
+            const lastUpdateTime = document.getElementById('lastUpdateTime');
+            if (lastUpdateTime) {
+                lastUpdateTime.textContent = '更新失败';
+            }
+        } catch (error) {
+            console.error('创建错误图表失败:', error);
         }
-        
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        
-        // 添加淡入效果
-        requestAnimationFrame(() => {
-            toast.style.opacity = '1';
-        });
-        
-        // 定时移除
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 300);
-        }, duration);
     },
 
     // 删除对话
@@ -847,6 +891,245 @@ const App = {
         } catch (error) {
             console.error('删除对话失败:', error);
             this.showToast('删除失败，请重试');
+        }
+    },
+
+    // 渲染对话列表
+    renderConversationList() {
+        const conversations = Storage.getConversations();
+        const listHtml = conversations.map(conv => {
+            const date = this.formatDate(conv.id);
+            const preview = conv.messages[0]?.content.substring(0, 30) + '...' || '';
+            const activeClass = conv.id === this.currentConversationId ? 'active' : '';
+            
+            return `
+                <div class="conversation-item ${activeClass}" data-id="${conv.id}">
+                    <div class="conversation-title">${date}</div>
+                    <div class="conversation-preview">${preview}</div>
+                    <div class="conversation-actions">
+                        <svg class="delete-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        document.getElementById('conversationList').innerHTML = listHtml || `
+            <div class="empty-state">
+                <p>没有历史对话</p>
+                <p>点击"新对话"按钮开始聊天</p>
+            </div>
+        `;
+        
+        // 添加事件监听
+        document.querySelectorAll('.conversation-item').forEach(item => {
+            const id = item.dataset.id;
+            
+            // 对话点击事件
+            item.addEventListener('click', (e) => {
+                if (!e.target.closest('.delete-icon')) {
+                    this.loadConversation(id);
+                }
+            });
+            
+            // 删除图标点击事件
+            const deleteIcon = item.querySelector('.delete-icon');
+            if (deleteIcon) {
+                deleteIcon.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.showDeleteConfirm(id);
+                });
+            }
+        });
+    },
+
+    // 显示删除确认对话框
+    showDeleteConfirm(id) {
+        // 使用已有的删除确认弹窗
+        const deleteModal = document.getElementById('deleteModal');
+        const confirmDeleteBtn = document.getElementById('confirmDelete');
+        const cancelDeleteBtn = document.getElementById('cancelDelete');
+        
+        // 移除之前可能存在的事件监听器
+        const newConfirmBtn = confirmDeleteBtn.cloneNode(true);
+        const newCancelBtn = cancelDeleteBtn.cloneNode(true);
+        
+        confirmDeleteBtn.parentNode.replaceChild(newConfirmBtn, confirmDeleteBtn);
+        cancelDeleteBtn.parentNode.replaceChild(newCancelBtn, cancelDeleteBtn);
+        
+        // 添加新的事件监听器
+        newConfirmBtn.addEventListener('click', async () => {
+            // 先关闭弹窗
+            Modal.closeModal('deleteModal');
+            // 然后异步删除对话
+            await this.deleteConversation(id);
+        });
+        
+        newCancelBtn.addEventListener('click', () => {
+            Modal.closeModal('deleteModal');
+        });
+        
+        // 显示弹窗
+        Modal.openModal('deleteModal');
+    },
+
+    // 显示提示消息
+    showToast(message, duration = 2000) {
+        // 移除已存在的toast
+        const existingToast = document.querySelector('.toast');
+        if (existingToast) {
+            existingToast.remove();
+        }
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        // 添加淡入效果
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+        });
+        
+        // 定时移除
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    },
+
+    // 更新情绪图表
+    updateEmotionChart(emotionsData) {
+        try {
+            const emotionChartCanvas = document.getElementById('emotionChart');
+            if (!emotionChartCanvas) return;
+            
+            // 确保销毁所有已存在的图表实例
+            if (window.chartInstances && window.chartInstances.emotionChart) {
+                window.chartInstances.emotionChart.destroy();
+                window.chartInstances.emotionChart = null;
+            }
+            
+            const ctx = emotionChartCanvas.getContext('2d');
+            
+            // 解析情绪数据
+            let labels = [];
+            let data = [];
+            
+            // 尝试解析情绪数据
+            if (typeof emotionsData === 'string' && emotionsData.trim() !== '') {
+                // 假设数据格式是：日期1: 值1, 日期2: 值2, ...
+                const pairs = emotionsData.split(',').map(pair => pair.trim());
+                
+                pairs.forEach(pair => {
+                    const [date, value] = pair.split(':').map(item => item.trim());
+                    if (date && value) {
+                        labels.push(date);
+                        // 将情绪值转换为0-100的数值
+                        const numValue = parseFloat(value);
+                        data.push(isNaN(numValue) ? 50 : numValue);
+                    }
+                });
+            }
+            
+            // 如果没有数据，使用默认值
+            if (labels.length === 0) {
+                const today = new Date();
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date(today);
+                    date.setDate(today.getDate() - i);
+                    labels.push(date.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }));
+                    data.push(50); // 默认中性情绪值
+                }
+            }
+            
+            // 创建图表
+            const newChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '情绪变化',
+                        data: data,
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    if (value === 0) return '低落';
+                                    if (value === 50) return '平静';
+                                    if (value === 100) return '开心';
+                                    return '';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 保存图表实例到全局对象
+            if (!window.chartInstances) window.chartInstances = {};
+            window.chartInstances.emotionChart = newChart;
+            
+        } catch (error) {
+            console.error('更新情绪图表错误:', error);
+            // 创建一个空图表，确保之前的实例被销毁
+            try {
+                const emotionChartCanvas = document.getElementById('emotionChart');
+                if (!emotionChartCanvas) return;
+                
+                // 确保销毁所有已存在的图表实例
+                if (window.chartInstances && window.chartInstances.emotionChart) {
+                    window.chartInstances.emotionChart.destroy();
+                    window.chartInstances.emotionChart = null;
+                }
+                
+                const ctx = emotionChartCanvas.getContext('2d');
+                
+                const newChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: '情绪变化',
+                            data: [],
+                            borderColor: '#ccc',
+                            backgroundColor: 'rgba(200, 200, 200, 0.1)',
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+                
+                // 保存图表实例到全局对象
+                if (!window.chartInstances) window.chartInstances = {};
+                window.chartInstances.emotionChart = newChart;
+            } catch (innerError) {
+                console.error('创建空图表失败:', innerError);
+            }
         }
     },
 };

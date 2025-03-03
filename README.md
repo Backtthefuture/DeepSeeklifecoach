@@ -1,4 +1,4 @@
-# DeepSeek 生活教练 v0.5.1
+# DeepSeek 生活教练 v0.6.0
 
 基于 DeepSeek 大语言模型的生活教练应用，帮助你进行生活规划、情感疏导和个人成长。
 
@@ -14,6 +14,21 @@
 - ✨ Markdown 支持：AI 回复支持 Markdown 格式，显示更美观
 
 ## 最新更新
+
+### v0.7.0 (2025-02-28)
+- 🔄 优化API配置，自动适应本地和云端环境
+- 🌐 增强CORS配置，确保跨域请求正常工作
+- ✨ 添加情绪分析模块，提供更详细的情绪分析结果
+- 📊 更新分析面板，显示最后更新时间
+- 🐛 修复对话记录时间显示问题，确保时间格式正确
+- 📝 更新部署文档，提供更详细的Vercel部署指南
+
+### v0.6.0 (2025-02-27)
+- 🎨 全新苹果风格界面设计，提供更现代、简洁的用户体验
+- 📱 优化响应式布局，适配不同屏幕尺寸
+- ✨ 改进交互动画和过渡效果，提升用户体验流畅度
+- 🔄 重构弹窗和通知系统，使用更直观的交互方式
+- 🌓 优化色彩系统，提高界面对比度和可读性
 
 ### v0.5.2 (2025-03-03)
 - 🚀 优化 API 请求处理，增加超时时间至 120 秒
@@ -120,54 +135,86 @@ API 代理地址: http://localhost:3000/api/proxy
 
 在终端中按下 `Ctrl + C` 组合键可以停止服务器。
 
+## API通信配置
+
+应用支持在本地开发环境和Vercel部署环境中与火山方舟API进行通信。
+
+### 本地开发环境
+
+在本地开发环境中，API请求通过本地Express服务器代理：
+
+1. 启动本地服务器：
+   ```bash
+   npm start
+   ```
+
+2. 服务器会在 http://localhost:8888 启动，API代理地址为 http://localhost:8888/api/proxy
+
+3. 前端代码会自动检测当前环境，并使用正确的API端点
+
+### Vercel部署环境
+
+在Vercel部署环境中，API请求通过Serverless Function处理：
+
+1. `/api/proxy.js` Serverless Function负责处理API请求
+2. `vercel.json`中配置了API路由，将请求正确路由到Serverless Function
+
+### 错误处理与重试机制
+
+应用内置了错误处理和重试机制：
+
+1. 网络错误时自动重试，最多重试3次
+2. 使用指数退避策略，避免频繁请求
+3. 详细的错误日志，便于问题排查
+
+## 部署说明
+
+### Vercel部署
+
+1. Fork 本项目到你的 GitHub 账号
+2. 在 [Vercel](https://vercel.com) 中注册并登录
+3. 点击"New Project"，然后导入你Fork的GitHub仓库
+4. 部署配置：
+   - Framework Preset: 选择 "Other"
+   - Build Command: 留空
+   - Output Directory: 留空
+   - Install Command: `npm install`
+   - Development Command: `npm start`
+5. 点击"Deploy"按钮开始部署
+6. 部署完成后，Vercel会提供一个域名（如 `your-app.vercel.app`）
+7. 访问该域名即可使用应用
+
+### 环境变量（可选）
+
+如果需要更改API密钥，可以在Vercel项目设置中添加以下环境变量：
+
+- `API_KEY`: 你的火山方舟API密钥
+
+### 自定义域名（可选）
+
+1. 在Vercel项目设置中，进入"Domains"选项卡
+2. 添加你的自定义域名
+3. 按照Vercel提供的说明配置DNS记录
+4. 等待DNS生效后，即可通过自定义域名访问应用
+
+### 本地与云端环境
+
+- 本地开发环境会自动使用 `http://localhost:8888/api/proxy` 作为API端点
+- Vercel部署环境会自动使用 `/api/proxy` 作为API端点，由vercel.json配置处理代理转发
+- 无需手动切换配置，应用会根据当前环境自动适应
+
+### 注意事项
+
+- 确保GitHub仓库中包含完整的代码，包括 `vercel.json` 配置文件
+- 如果API请求失败，请检查火山方舟API密钥是否有效
+- 部署后如需更新，只需推送新代码到GitHub仓库，Vercel会自动重新部署
+
 ## 技术实现
 
 - 前端：HTML5, CSS3, JavaScript
 - AI 模型：DeepSeek-R1
 - 数据存储：localStorage
 - 部署平台：Vercel
-
-## 部署说明
-
-### Vercel 部署步骤
-
-1. Fork 本项目到你的 GitHub 账号
-2. 在 Vercel 中导入该项目
-3. 配置以下环境变量（可选）：
-   - `VOLCES_API_KEY`: 火山方舟 API 密钥（如不设置将使用默认密钥）
-   - `VOLCES_MODEL`: DeepSeek 模型名称，默认为 'deepseek-r1-250120'。
-   - `VOLCES_HOSTNAME`: 火山方舟 API 主机名，默认为 'ark.cn-beijing.volces.com'。
-   - `VOLCES_PATH`: 火山方舟 API 路径，默认为 '/api/v3/chat/completions'。
-   - `VOLCES_API_URL`: 完整的火山方舟 API URL，默认为 'https://ark.cn-beijing.volces.com'。
-4. 点击部署按钮
-5. 部署完成后即可使用
-
-### 环境变量说明
-
-| 变量名 | 必填 | 说明 |
-|--------|------|------|
-| VOLCES_API_KEY | 否 | 火山方舟 API 密钥，用于访问 DeepSeek 模型。如不设置，将使用代码中的默认密钥。 |
-| VOLCES_MODEL | 否 | DeepSeek 模型名称，默认为 'deepseek-r1-250120'。 |
-| VOLCES_HOSTNAME | 否 | 火山方舟 API 主机名，默认为 'ark.cn-beijing.volces.com'。 |
-| VOLCES_PATH | 否 | 火山方舟 API 路径，默认为 '/api/v3/chat/completions'。 |
-| VOLCES_API_URL | 否 | 完整的火山方舟 API URL，默认为 'https://ark.cn-beijing.volces.com'。 |
-
-### Vercel 环境变量设置步骤
-
-1. 登录 Vercel 控制台，进入你的项目
-2. 点击 "Settings" 选项卡
-3. 在左侧菜单中选择 "Environment Variables"
-4. 添加上述环境变量（至少需要设置 `VOLCES_API_KEY`）
-5. 点击 "Save" 保存设置
-6. 重新部署你的项目以应用新的环境变量
-
-### 超时配置说明
-
-本项目已在 `vercel.json` 中配置了 Serverless 函数的最大运行时间为 120 秒，以处理复杂的 AI 请求。这个配置适用于 Vercel 的付费计划。如果你使用的是免费计划，可能需要调整此值，因为免费计划的函数执行时间限制为 10 秒。
-
-对于免费计划，你可以：
-1. 将 `vercel.json` 中的 `maxDuration` 值改为 10（秒）
-2. 或者考虑升级到付费计划以获得更长的执行时间
 
 ## 注意事项
 

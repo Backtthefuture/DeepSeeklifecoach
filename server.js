@@ -5,10 +5,14 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8888;
 
 // 启用 CORS
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // 静态文件服务
 app.use(express.static(path.join(__dirname)));
@@ -27,6 +31,11 @@ app.use('/api/proxy', createProxyMiddleware({
   timeout: 120000,
   proxyTimeout: 120000
 }));
+
+// 健康检查端点
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
 
 // 启动服务器
 app.listen(PORT, () => {

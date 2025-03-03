@@ -6,99 +6,106 @@
     <title>DeepSeek R1 Life Coach - 你的AI生活思考助手</title>
     <!-- 环境变量注入 -->
     <script src="public/env.js"></script>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/apple-style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
-        <!-- 情绪趋势图表 -->
-        <div class="emotion-chart">
-            <canvas id="emotionChart"></canvas>
+        <!-- 顶部导航栏 -->
+        <div class="top-nav">
+            <div class="app-title">DeepSeek 生活教练</div>
+            <div class="nav-buttons">
+                <button id="exportData" class="nav-button secondary">导出数据</button>
+                <button id="newChat" class="nav-button primary">新对话</button>
+            </div>
         </div>
 
         <!-- 主要内容区域 -->
         <div class="main-content">
-            <!-- 历史对话列表 -->
-            <div class="history-panel">
-                <h2>历史对话</h2>
-                <div class="panel-buttons">
-                    <button id="newChat" class="new-chat-btn">新对话</button>
-                    <button id="exportData" class="export-btn">导出数据</button>
+            <!-- 侧边栏 - 历史对话 -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-title">对话历史</div>
+                    <div class="search-box">
+                        <input type="text" placeholder="搜索对话..." id="searchConversation">
+                    </div>
                 </div>
-                <div id="conversationList"></div>
+                <div id="conversationList" class="conversation-list"></div>
             </div>
 
-            <!-- 当前对话区域 -->
-            <div class="chat-panel">
-                <!-- 对话内容展示区 -->
-                <div id="currentConversation" class="conversation-container"></div>
-
-                <!-- 输入区域 -->
-                <div class="input-area">
-                    <div class="emotion-selector">
-                        <button data-emotion="happy" class="emotion-btn">😊</button>
-                        <button data-emotion="sad" class="emotion-btn">😔</button>
-                        <button data-emotion="angry" class="emotion-btn">😡</button>
-                        <button data-emotion="anxious" class="emotion-btn">😨</button>
-                        <button data-emotion="neutral" class="emotion-btn">😐</button>
+            <!-- 聊天区域 -->
+            <div class="chat-area">
+                <div class="chat-container">
+                    <div id="currentConversation" class="messages-container"></div>
+                    
+                    <!-- 输入区域 -->
+                    <div class="input-area">
+                        <div class="emotion-selector">
+                            <button data-emotion="happy" class="emotion-btn">😊 开心</button>
+                            <button data-emotion="sad" class="emotion-btn">😔 难过</button>
+                            <button data-emotion="angry" class="emotion-btn">😡 生气</button>
+                            <button data-emotion="anxious" class="emotion-btn">😨 焦虑</button>
+                            <button data-emotion="neutral" class="emotion-btn selected">😐 平静</button>
+                        </div>
+                        <div class="input-container">
+                            <textarea id="userInput" placeholder="分享你的想法..."></textarea>
+                            <button id="sendButton" class="send-button">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-                    <textarea id="userInput" placeholder="分享你的想法..."></textarea>
-                    <button id="sendButton">发送</button>
+                </div>
+            </div>
+
+            <!-- 分析面板 -->
+            <div class="analysis-panel">
+                <div class="panel-header">
+                    <div class="panel-title">对话分析</div>
+                    <button id="refreshInsight" class="nav-button secondary">
+                        开始分析
+                    </button>
+                </div>
+                
+                <div class="insight-cards">
+                    <div class="insight-card">
+                        <div class="card-header">
+                            <div class="card-title">情绪趋势</div>
+                        </div>
+                        <div class="card-content">
+                            <div class="emotion-chart">
+                                <canvas id="emotionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <div class="card-header">
+                            <div class="card-title">情绪分析</div>
+                        </div>
+                        <div id="emotionInsight" class="card-content">
+                            <div class="waiting-message">点击"开始分析"按钮开始分析</div>
+                        </div>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <div class="card-header">
+                            <div class="card-title">AI 洞察</div>
+                        </div>
+                        <div id="aiInsight" class="card-content">
+                            <div class="waiting-message">点击"开始分析"按钮开始分析</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="last-update">
+                    上次更新: <span id="lastUpdateTime">-</span>
                 </div>
             </div>
         </div>
-
-        <!-- 周报分析区域 -->
-        <div class="weekly-report">
-            <div class="section-header">
-                <h2>对话分析</h2>
-                <button id="refreshInsight" class="analysis-btn">
-                    <i class="icon">🔄</i> 开始分析
-                </button>
-            </div>
-            <div class="insight-grid">
-                <div class="insight-card">
-                    <div class="card-header">
-                        <i class="icon">🎯</i>
-                        <h3>主要话题</h3>
-                    </div>
-                    <div id="topicInsight" class="card-content">
-                        <div class="waiting-message">点击"开始分析"按钮开始分析</div>
-                    </div>
-                </div>
-                <div class="insight-card">
-                    <div class="card-header">
-                        <i class="icon">😊</i>
-                        <h3>情绪变化</h3>
-                    </div>
-                    <div id="emotionInsight" class="card-content">
-                        <div class="waiting-message">点击"开始分析"按钮开始分析</div>
-                    </div>
-                </div>
-                <div class="insight-card">
-                    <div class="card-header">
-                        <i class="icon">💡</i>
-                        <h3>关键词</h3>
-                    </div>
-                    <div id="keywordsInsight" class="card-content">
-                        <div class="waiting-message">点击"开始分析"按钮开始分析</div>
-                    </div>
-                </div>
-                <div class="insight-card">
-                    <div class="card-header">
-                        <i class="icon">🤔</i>
-                        <h3>AI 洞察</h3>
-                    </div>
-                    <div id="aiInsight" class="card-content">
-                        <div class="waiting-message">点击"开始分析"按钮开始分析</div>
-                    </div>
-                </div>
-            </div>
-            <div class="last-update">
-                上次更新: <span id="lastUpdateTime">-</span>
-            </div>
-        </div>
-
+        
         <!-- JavaScript 文件 -->
         <script src="js/storage.js"></script>
         <script src="js/ai.js"></script>
@@ -114,12 +121,38 @@
     </footer>
 
     <!-- 二维码弹窗 -->
-    <div id="qrcodeModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <img src="assets/images/shequn.png" alt="社群二维码" class="qrcode-img">
+    <div id="qrcodeModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">扫码加入社群</div>
+            </div>
+            <div class="modal-content">
+                <img src="assets/images/shequn.png" alt="社群二维码" width="200">
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-button">关闭</button>
+            </div>
         </div>
     </div>
+
+    <!-- 删除确认弹窗 -->
+    <div id="deleteModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">确认删除</div>
+            </div>
+            <div class="modal-content">
+                <p>确定要删除这个对话吗？此操作无法撤销。</p>
+            </div>
+            <div class="modal-buttons">
+                <button id="cancelDelete" class="modal-button">取消</button>
+                <button id="confirmDelete" class="modal-button primary">删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知提示 -->
+    <div id="toast" class="toast"></div>
 
     <script src="js/modal.js"></script>
 </body>

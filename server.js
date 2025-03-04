@@ -22,7 +22,10 @@ app.use('/api/proxy', createProxyMiddleware({
   },
   onProxyRes: function(proxyRes, req, res) {
     proxyRes.headers['Access-Control-Allow-Origin'] = '*';
-  }
+  },
+  // 增加超时设置
+  proxyTimeout: 120000,  // 120秒
+  timeout: 120000        // 120秒
 }));
 
 // 启动服务器
